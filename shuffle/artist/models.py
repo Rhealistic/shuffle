@@ -19,7 +19,7 @@ class Artist(models.Model):
         ('REJECTED', "Accepted"),
         ('UNAVAILABLE', "Unavailable"),
     ])
-    country = models.CharField(max_length=3)
+    country = models.CharField(max_length=3, default="KEN")
 
     performance_count = models.PositiveSmallIntegerField(default=0)
     next_performance = models.DateTimeField(null=True)

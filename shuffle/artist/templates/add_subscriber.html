@@ -1,0 +1,26 @@
+{% load bootstrap5 %}
+
+<html>
+    <head>
+        {% bootstrap_css %}
+        {% bootstrap_javascript %}
+    </head>
+    <body>
+        {% bootstrap_messages %}
+        <div class="container">
+            <h1>HELP</h1>
+            <br />
+            <hr />
+            <br />
+            <form>
+                {% csrf_token %}
+                {% bootstrap_form form %}
+                {% buttons %}
+                    <button type="submit" class="btn btn-primary">
+                    Submit
+                    </button>
+                {% endbuttons %}
+            </form>
+        </div>
+    </body>
+</html>
