@@ -1,3 +1,6 @@
+admin_settings.py
+production_settings.py
+
 .DS_Store
 .vscode/
 static_root/
