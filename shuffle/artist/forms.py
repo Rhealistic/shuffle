@@ -1,4 +1,4 @@
-from django.forms import ModelForm
+from django.forms import ModelForm, Textarea
 
 from .models import Artist
 
@@ -11,6 +11,8 @@ class SubscriptionForm(ModelForm):
             'email',
             'phone',
             'photo',
-            'instagram',
-            'country'
+            'instagram'
         ]
+        widgets = {
+            'bio': Textarea(attrs={'rows': 3}),
+        }
