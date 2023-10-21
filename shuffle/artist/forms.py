@@ -10,7 +10,6 @@ class SubscriptionForm(ModelForm):
             'bio',
             'email',
             'phone',
-            'photo',
             'instagram'
         ]
         widgets = {

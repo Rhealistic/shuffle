@@ -1,3 +1,15 @@
 from django.contrib import admin
 
-# Register your models here.
+
+from .models import Artist
+@admin.register(Artist)
+class ArtistAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "email",
+        "phone",
+        "instagram",
+        "opportunity_status",
+        "invite_status",
+        "performance_count"    ,
+    ]

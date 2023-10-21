@@ -31,6 +31,9 @@
                 font-weight: 600;
                 line-height: 1;
             }
+            .header.success {
+                color: #198754;
+            }
 
             form {
                 font-family: 'JetBrains Mono', sans-serif;
@@ -61,17 +64,77 @@
             .jungle-image {
                 margin: auto;
             }
+
+            .box {
+                border: 1px solid #fbb041;
+            }
         </style>
       </head>
     <body>
         {% bootstrap_messages %}
         
-        <div class="main-container">
+        {% if not successful %}
+            <div class="main-container">
+                <div class="container">
+                    <div class="row">
+                        <div class="col-md-12 col-sm-12 col-lg-6">
+                            <h1 class="header">Apply to perform at Jenga Jungle </h1>
+                            <div class="text-content">
+                                <p>
+                                    As Santuri East Africa, we belief in giving you the artist, opportunities to develop in your craft. <br /><br />
+                                </p>
+                                <p>
+                                    We welcome you to enter your details and register to the rotation for Jenga Jungle nights on Fridays. 
+                                </p>
+                                <p>
+                                    With the introduction of Shuffle, Santuri East Africa empowers its community by having the curators gain more time to nurture artists, by delegating and automating repetitive processes that come with regular curation.
+                                </p>
+                            </div>
+                        </div>
+                        <div class="col-md-12 col-sm-12 col-lg-6 pt-3">
+                            <img src="https://storage.mlcdn.com/account_image/204905/rNt1c7NxHe1NVU8j2ZNWXGOhKwmjQvmb63loxzhj.jpg" class="img-fluid" alt="...">
+                        </div>
+                    </div>
+                </div>
+                <div class="form-container">
+                    <div class="container">
+                        <div class="row">
+                            <div class="col-lg-5 col-sm-12 col-md-6 m-auto">
+                                <img src="https://storage.mlcdn.com/account_image/204905/qDgb5ElWEv4OBOvSJBtFkAL1lya9KCCAdWxgiHMX.png" class="py-6 mx-auto d-block" alt="...">
+                            </div>
+                            <div class="col-lg-7 col-sm-12 col-md-6">
+                                <form method="POST" action=".">
+                                    {% csrf_token %}
+                                    {% bootstrap_form form layout='inline' %}
+                                    <div class="mt-4">
+                                        {% buttons %}
+                                            <button type="submit" class="btn btn-success">
+                                            Submit Application
+                                            </button>
+                                        {% endbuttons %}
+                                    </div>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
             <div class="container">
-                <div class="row">
-                    <div class="col-md-12 col-sm-12 col-lg-6">
-                        <h1 class="header">Apply to perform at Jenga Jungle </h1>
-                        <div class="text-content">
+                <div class="box">
+                    <div class="text-content">
+                        <h1 class="header success p-5">Application Received</h1>
+                        <div class="col-lg-5 col-sm-12 col-md-6">
+                            <img src="https://storage.mlcdn.com/account_image/204905/qDgb5ElWEv4OBOvSJBtFkAL1lya9KCCAdWxgiHMX.png" class="py-6 mx-auto d-block" alt="...">
+                        </div>
+                        <div class="p-5">
+                            <p>
+                                Your application has been received by our curator.
+                            </p>
+                            <p>
+                                Be on the look out for our shuffle that happens every Saturday, 9AM. You will receive an SMS and a chance 
+                                to perform at our Jenga Jungle slot.
+                            </p>
                             <p>
                                 As Santuri East Africa, we belief in giving you the artist, opportunities to develop in your craft. <br /><br />
                             </p>
@@ -81,36 +144,17 @@
                             <p>
                                 With the introduction of Shuffle, Santuri East Africa empowers its community by having the curators gain more time to nurture artists, by delegating and automating repetitive processes that come with regular curation.
                             </p>
-                        </div>
-                    </div>
-                    <div class="col-md-12 col-sm-12 col-lg-6 pt-3">
-                        <img src="https://storage.mlcdn.com/account_image/204905/rNt1c7NxHe1NVU8j2ZNWXGOhKwmjQvmb63loxzhj.jpg" class="img-fluid" alt="...">
-                    </div>
-                </div>
-            </div>
-            <div class="form-container">
-                <div class="container">
-                    <div class="row">
-                        <div class="col-lg-5 col-sm-12 col-md-6 m-auto">
-                            <img src="https://storage.mlcdn.com/account_image/204905/qDgb5ElWEv4OBOvSJBtFkAL1lya9KCCAdWxgiHMX.png" class="py-6 mx-auto d-block" alt="...">
-                        </div>
-                        <div class="col-lg-7 col-sm-12 col-md-6">
-                            <form method="POST" action=".">
-                                {% csrf_token %}
-                                {% bootstrap_form form layout='inline' %}
-                                <div class="mt-4">
-                                    {% buttons %}
-                                        <button type="submit" class="btn btn-primary">
-                                        Submit Application
-                                        </button>
-                                    {% endbuttons %}
-                                </div>
-                            </form>
+                            <br >
+                            <hr >
+                            <br >
+                            <a href="/" type="submit" class="btn btn-success">
+                                << GO HOME
+                            </a>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
+        {% endif %}
 
         <!-- Optional JavaScript; choose one of the two! -->
         <!-- Option 1: Bootstrap Bundle with Popper -->
