@@ -24,6 +24,5 @@ urlpatterns = [
     path('', include('shuffle.artist.urls')),
     path('', include('shuffle.curator.urls')),
 
-    path('', index),
     path('admin/', admin.site.urls),
 ]
