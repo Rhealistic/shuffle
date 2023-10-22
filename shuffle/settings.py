@@ -136,3 +136,11 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+#---------
+
+IN_PRODUCTION = True
+MAILERLITE = {
+   "api_key": "mailerlite_api_key",
+   "group_id": "mailerlite_subscriber_group_id"
+}

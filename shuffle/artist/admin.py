@@ -6,6 +6,7 @@ from .models import Artist
 class ArtistAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "artist_id",
         "email",
         "phone",
         "instagram",
