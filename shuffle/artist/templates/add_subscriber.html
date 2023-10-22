@@ -90,10 +90,10 @@
                             <h1 class="header">Apply to perform at Jenga Jungle </h1>
                             <div class="text-content">
                                 <p>
-                                    As Santuri East Africa, we belief in giving you the artist, opportunities to develop in your craft. <br /><br />
+                                    As Santuri East Africa, we believe in giving you the artist, opportunities to develop in your craft. <br />
                                 </p>
                                 <p>
-                                    We welcome you to enter your details and register to the rotation for Jenga Jungle nights on Fridays. 
+                                    We welcome you to enter your details and register to the rotation for Jenga Jungle nights on <b>Fridays</b>. 
                                 </p>
                                 <p>
                                     With the introduction of Shuffle, Santuri East Africa empowers its community by having the curators gain more time to nurture artists, by delegating and automating repetitive processes that come with regular curation.
@@ -115,9 +115,9 @@
                                 <form id="subscribe-form" method="POST" action="." onsubmit="on_submit()">
                                     {% csrf_token %}
                                     {% bootstrap_form form layout='inline' %}
-                                    <div class="mt-4">
+                                    <div class="mt-4 col-5 col-xs-12 col-sm-12 col-md-6">
                                         {% buttons %}
-                                            <input type="submit" id="submit-button" type="submit" class="btn btn-success" value="Submit Your Application >"/>
+                                            <input type="submit" id="submit-button" type="submit" class="btn btn-success btn-block" value="Submit Your Application >"/>
                                         {% endbuttons %}
                                     </div>
                                 </form>
@@ -145,7 +145,7 @@
                             <br >
                             <hr >
                             <br >
-                            <a href="/" type="submit" class="btn btn-success">
+                            <a href="/" type="submit" class="btn btn-success btn-lg">
                                 << GO HOME
                             </a>
                         </div>

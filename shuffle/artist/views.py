@@ -8,7 +8,7 @@ from .utils import update_mailerlite, UUIDEncoder
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.http import HttpResponse
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.views.decorators.http import require_GET, require_http_methods
 
 
@@ -25,6 +25,9 @@ def artist_view(request, artist_id=None, *args, **kwargs):
 
     return HttpResponse(data, content_type='application/json')
 
+@require_http_methods(["GET"])
+def home(request, *args, **kwargs):
+    return redirect('https://shuffle.rhealistic.info/santuri')
 
 @require_http_methods(["GET", "POST"])
 def subscribe(request, *args, **kwargs):
