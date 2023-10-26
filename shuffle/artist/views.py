@@ -5,6 +5,8 @@ from .models import Artist
 from .forms import SubscriptionForm, SearchImageForm
 from .utils import update_mailerlite, UUIDEncoder, search_unsplash_photos
 
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.conf import settings
 from django.forms.models import model_to_dict
 from django.http import HttpResponse, JsonResponse
@@ -12,17 +14,25 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_GET, require_http_methods
 
 
+
 @require_GET
 def search_image(request):
-    data = []
+    data = None
     form = SearchImageForm(request.GET)
 
     if form.is_valid():
         if form.cleaned_data['chosen']:
-            data = {
-                "photo": form.cleaned_data['chosen']
-            }
-        else:
+            val = URLValidator()
+
+            try:
+                val(form.cleaned_data['chosen'])
+                data = {
+                    "photo": form.cleaned_data['chosen']
+                }
+            except ValidationError as e:
+                pass
+        
+        if not data:
             data = {
                 "photo": search_unsplash_photos(form.cleaned_data['query'])
             }
