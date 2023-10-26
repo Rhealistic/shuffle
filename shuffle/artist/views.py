@@ -2,14 +2,48 @@ import json
 import traceback
 
 from .models import Artist
-from .forms import SubscriptionForm
-from .utils import update_mailerlite, UUIDEncoder
+from .forms import SubscriptionForm, SearchImageForm
+from .utils import update_mailerlite, UUIDEncoder, search_unsplash_photos
 
 from django.conf import settings
 from django.forms.models import model_to_dict
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_GET, require_http_methods
+
+
+@require_GET
+def search_image(request):
+    data = []
+    form = SearchImageForm(request.GET)
+
+    if form.is_valid():
+        if form.cleaned_data['chosen']:
+            data = {
+                "photo": form.cleaned_data['chosen']
+            }
+        else:
+            data = {
+                "photo": search_unsplash_photos(form.cleaned_data['query'])
+            }
+    else:
+        data = {
+            'error': 404,
+            'message': 'Did you provide a query message?'
+        }
+
+    return JsonResponse(data, content_type='application/json')
+
+@require_GET
+def artist_list(request, artist_id=None, *args, **kwargs):
+    artists = Artist.objects.all()
+    
+    data = json.dumps(
+        dict(artist_id=artist.artist_id, **artist_dict), 
+        cls=UUIDEncoder, 
+        indent=2)
+
+    return JsonResponse(data)
 
 
 @require_GET
@@ -20,14 +54,13 @@ def artist_view(request, artist_id=None, *args, **kwargs):
     data = json.dumps(
         dict(artist_id=artist.artist_id, **artist_dict), 
         cls=UUIDEncoder, 
-        indent=2
-    )
+        indent=2)
 
-    return HttpResponse(data, content_type='application/json')
+    return JsonResponse(data)
 
 @require_http_methods(["GET"])
-def home(request, *args, **kwargs):
-    return redirect('https://shuffle.rhealistic.info/santuri')
+def home(*args, **kwargs):
+    return redirect('/santuri/')
 
 @require_http_methods(["GET", "POST"])
 def subscribe(request, *args, **kwargs):

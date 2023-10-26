@@ -1,8 +1,8 @@
-from django.forms import ModelForm, Textarea
+from django import forms
 
 from .models import Artist
 
-class SubscriptionForm(ModelForm):
+class SubscriptionForm(forms.ModelForm):
     class Meta:
         model = Artist
         fields = [
@@ -13,5 +13,9 @@ class SubscriptionForm(ModelForm):
             'instagram'
         ]
         widgets = {
-            'bio': Textarea(attrs={'rows': 3}),
+            'bio': forms.Textarea(attrs={'rows': 3}),
         }
+
+class SearchImageForm(forms.Form):
+    query = forms.CharField(max_length=150, required=True)
+    chosen = forms.URLField(required=False)

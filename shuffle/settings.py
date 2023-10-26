@@ -145,3 +145,6 @@ MAILERLITE = {
    "api_key": "mailerlite_api_key",
    "group_id": "mailerlite_subscriber_group_id"
 }
+
+ADMIN_KEY = 'admin-key'
+UNSPLASH_API_KEY = '<unsplash_api_key>'

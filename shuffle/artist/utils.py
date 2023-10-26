@@ -1,8 +1,12 @@
 import logging
 import json
+import requests
+import random
 
+from django.conf import settings
 from django.db import transaction
 
+from icecream import ic
 from mailerlite import MailerLiteApi
 from mailerlite.constants import Subscriber
 from uuid import UUID
@@ -47,3 +51,22 @@ def update_mailerlite(artist:Artist, api_key:str=None, group_id:str=None):
         artist.save()
 
     return subscriber
+
+
+def search_unsplash_photos(query):
+    params = {
+        'query': query,
+        'per_page': 100
+    }
+    headers = {
+        'Authorization': 'Client-ID %s' % settings.UNSPLASH_API_KEY
+    }    
+    response = requests.get(
+        "https://api.unsplash.com/search/photos", params=params, headers=headers
+    )
+
+    photos = response.json()
+    if photos['results']:
+        photo = random.choice(photos['results'])
+        return photo['urls']['full']
+
