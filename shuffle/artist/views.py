@@ -9,7 +9,7 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.conf import settings
 from django.forms.models import model_to_dict
-from django.http import HttpResponse, JsonResponse
+from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.http import require_GET, require_http_methods
 
@@ -39,10 +39,11 @@ def search_image(request):
     else:
         data = {
             'error': 404,
-            'message': 'Did you provide a query message?'
+            'message': 'Did you provide a query message?',
+            'errors': form.errors
         }
 
-    return JsonResponse(data, content_type='application/json')
+    return JsonResponse(data)
 
 @require_GET
 def artist_list(request, artist_id=None, *args, **kwargs):

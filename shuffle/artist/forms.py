@@ -18,4 +18,4 @@ class SubscriptionForm(forms.ModelForm):
 
 class SearchImageForm(forms.Form):
     query = forms.CharField(max_length=150, required=True)
-    chosen = forms.CharField(max_length=300, required=False)
+    chosen = forms.CharField(max_length=500, required=False)

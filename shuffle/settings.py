@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
     'shuffle.artist',
     'shuffle.curator',
+    'shuffle.wordpress',
 
     'bootstrap5',
 ]
@@ -147,4 +148,8 @@ MAILERLITE = {
 }
 
 ADMIN_KEY = 'admin-key'
-UNSPLASH_API_KEY = '<unsplash_api_key>'
+UNSPLASH_API_KEY = '<UNSPLASH_API_KEY>'
+
+WORDPRESS_URL = '<WORDPRESS_URL>'
+WORDPRESS_ENC_PUBLIC_KEY = '<WORDPRESS_ENC_PUBLIC_KEY>'
+WORDPRESS_ENC_PRIVATE_KEY = '<WORDPRESS_ENC_PRIVATE_KEY>'

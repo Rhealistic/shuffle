@@ -10,6 +10,4 @@ urlpatterns = [
 
     path("api/v1/artists/", views.artist_list),
     path("api/v1/artists/<artist_id>", views.artist_view),
-
-    path("search-image/", views.search_image),
 ]

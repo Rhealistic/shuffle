@@ -52,11 +52,10 @@ def update_mailerlite(artist:Artist, api_key:str=None, group_id:str=None):
 
     return subscriber
 
-
 def search_unsplash_photos(query):
     params = {
         'query': query,
-        'per_page': 100
+        'per_page': 30
     }
     headers = {
         'Authorization': 'Client-ID %s' % settings.UNSPLASH_API_KEY
