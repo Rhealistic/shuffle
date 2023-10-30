@@ -66,4 +66,11 @@ def search_unsplash_photos(query):
 
     photos = response.json()
     if 'results' in photos and photos['results']:
-        return random.choice(photos['results'])
+        photo = random.choice(photos['results'])
+        
+        del photo["user"]
+        del photo["tags"]
+        del photo["social"]
+        del photo["links"]
+
+        return photo

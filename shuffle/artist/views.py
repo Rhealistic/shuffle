@@ -33,7 +33,7 @@ def search_image(request):
         
         if not data:
             data = {
-                "photo": search_unsplash_photos(form.cleaned_data['query'])
+                **search_unsplash_photos(form.cleaned_data['query'])
             }
     else:
         data = {
