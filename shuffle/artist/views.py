@@ -32,9 +32,7 @@ def search_image(request):
                 pass
         
         if not data:
-            data = {
-                **search_unsplash_photos(form.cleaned_data['query'])
-            }
+            data = search_unsplash_photos(form.cleaned_data['query'])
     else:
         data = {
             'error': 404,
