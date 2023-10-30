@@ -63,16 +63,16 @@ class Post(models.Model):
     post_id = models.CharField(max_length=32, default=alpha)
     wp_post_id = models.IntegerField(null=True)
 
-    title = models.CharField(max_length=200)
-    slug  = models.SlugField(max_length=200, null=True)
+    title = models.CharField(max_length=300)
+    slug  = models.SlugField(max_length=300, null=True)
     status = models.CharField(max_length=50)
 
-    media_alt_text = models.CharField(max_length=200, null=True)
-    media_caption = models.CharField(max_length=200, null=True)
-    media_description = models.CharField(max_length=200, null=True)
+    media_alt_text = models.CharField(max_length=300, null=True)
+    media_caption = models.CharField(max_length=300, null=True)
+    media_description = models.CharField(max_length=300, null=True)
 
-    meta_description = models.CharField(max_length=200)
-    meta_keywords = models.CharField(max_length=200)
+    meta_description = models.CharField(max_length=300)
+    meta_keywords = models.CharField(max_length=300)
 
     class Meta:
         db_table = "wordpress_post"

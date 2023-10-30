@@ -8,21 +8,21 @@ class ParamsForm(forms.Form):
 
     media_url = forms.URLField(required=False)
 
-    media_alt_text = forms.CharField(max_length=200, required=False)
-    media_caption = forms.CharField(max_length=200, required=False)
-    media_description = forms.CharField(max_length=200, required=False)
+    media_alt_text = forms.CharField(max_length=300, required=False)
+    media_caption = forms.CharField(max_length=300, required=False)
+    media_description = forms.CharField(max_length=300, required=False)
 
-    meta_description = forms.CharField(max_length=200)
-    meta_keywords = forms.CharField(max_length=200)
-    meta_filter = forms.CharField(max_length=200)
+    meta_description = forms.CharField(max_length=300)
+    meta_keywords = forms.CharField(max_length=300)
+    meta_filter = forms.CharField(max_length=300)
 
 class MediaForm(forms.Form):
     media_url = forms.URLField()
 
-    media_alt_text = forms.CharField(max_length=100)
-    media_caption = forms.CharField(max_length=100)
-    media_description = forms.CharField(max_length=200)
+    media_alt_text = forms.CharField(max_length=300)
+    media_caption = forms.CharField(max_length=300)
+    media_description = forms.CharField(max_length=300)
 
-    meta_description = forms.CharField(max_length=100)
-    meta_keywords = forms.CharField(max_length=100)
-    meta_filter = forms.CharField(max_length=100)
+    meta_description = forms.CharField(max_length=300)
+    meta_keywords = forms.CharField(max_length=300)
+    meta_filter = forms.CharField(max_length=300)
