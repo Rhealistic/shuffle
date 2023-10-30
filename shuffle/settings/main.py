@@ -13,6 +13,8 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+
+
 try:
    import pymysql
    pymysql.version_info = (1, 4, 6, 'final', 0)
@@ -21,7 +23,7 @@ except ImportError:
    pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
-BASE_DIR = Path(__file__).resolve().parent.parent
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
 
 
 # Quick-start development settings - unsuitable for production
@@ -150,6 +152,5 @@ MAILERLITE = {
 ADMIN_KEY = 'admin-key'
 UNSPLASH_API_KEY = '<UNSPLASH_API_KEY>'
 
-WORDPRESS_URL = '<WORDPRESS_URL>'
 WORDPRESS_ENC_PUBLIC_KEY = '<WORDPRESS_ENC_PUBLIC_KEY>'
 WORDPRESS_ENC_PRIVATE_KEY = '<WORDPRESS_ENC_PRIVATE_KEY>'

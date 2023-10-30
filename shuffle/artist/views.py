@@ -14,7 +14,6 @@ from django.shortcuts import render, redirect
 from django.views.decorators.http import require_GET, require_http_methods
 
 
-
 @require_GET
 def search_image(request):
     data = None
@@ -46,18 +45,6 @@ def search_image(request):
     return JsonResponse(data)
 
 @require_GET
-def artist_list(request, artist_id=None, *args, **kwargs):
-    artists = Artist.objects.all()
-    
-    data = json.dumps(
-        dict(artist_id=artist.artist_id, **artist_dict), 
-        cls=UUIDEncoder, 
-        indent=2)
-
-    return JsonResponse(data)
-
-
-@require_GET
 def artist_view(request, artist_id=None, *args, **kwargs):
     artist = Artist.objects.get(artist_id=artist_id)
     artist_dict = model_to_dict(artist, exclude=['id'])
@@ -71,7 +58,7 @@ def artist_view(request, artist_id=None, *args, **kwargs):
 
 @require_http_methods(["GET"])
 def home(*args, **kwargs):
-    return redirect('/santuri/')
+    return redirect('/santuri/jenga-jungle/')
 
 @require_http_methods(["GET", "POST"])
 def subscribe(request, *args, **kwargs):
