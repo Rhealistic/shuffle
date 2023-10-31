@@ -63,9 +63,9 @@ def create_wordpress_post(request, site_id=None):
                 **page_data,
                 **{
                     'meta' : {
-                        '_yoast_wpseo_title': title,
-                        '_yoast_wpseo_metadesc': meta_description,
-                        '_yoast_wpseo_focuskw_text_input': meta_keywords
+                        'seo_title': title,
+                        'seo_meta_description': meta_description,
+                        'seo_meta_keywords': meta_keywords
                     }
                 }
             }
