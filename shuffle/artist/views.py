@@ -11,12 +11,14 @@ from django.conf import settings
 from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_http_methods
 
 
 @require_GET
+@csrf_exempt
 def search_image(request):
-    data = None
+    data = {}
     form = SearchImageForm(request.GET)
 
     if form.is_valid():

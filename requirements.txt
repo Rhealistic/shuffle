@@ -9,6 +9,7 @@ cryptography==41.0.4
 django-cors-headers==4.3.0
 django-filter==23.3
 djangorestframework==3.14.0
+dj-database-url==2.1.0
 gunicorn==21.2.0
 Markdown==3.5
 packaging==23.2
@@ -29,3 +30,5 @@ parso==0.8.3
 pexpect==4.8.0
 pickleshare==0.7.5
 requests==2.31.0
+
+python-dotenv==1.0.0

@@ -13,7 +13,10 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 import os
 from pathlib import Path
 
+import dj_database_url
+from dotenv import dotenv_values
 
+config = dotenv_values()
 
 try:
    import pymysql
@@ -30,13 +33,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent.parent
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-#(n4a!k6vsoi-f-p-2iwd3ru$c#+q9qagbs767ye7(7=fhr3@!'
+SECRET_KEY = config.get('SECRET_KEY', 'django-insecure-#(n4a!k6vsoi-f-p-2iwd3ru$c#+q9qagbs767ye7(7=fhr3@!')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config.get("DEBUG", "True").lower() == "true"
 
-ALLOWED_HOSTS = []
-
+ALLOWED_HOSTS = config.get('ALLOWED_HOSTS', "").split(",")
 
 # Application definition
 
@@ -98,6 +100,13 @@ DATABASES = {
     }
 }
 
+if config.get('DATABASE_URL'):
+    DATABASES['default'] = dj_database_url.config(
+        default=config.get('DATABASE_URL'),
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
@@ -133,8 +142,8 @@ USE_TZ = True
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
-STATIC_URL = 'static/'
-STATIC_ROOT = os.path.join(BASE_DIR, 'static_root')
+STATIC_URL = config.get('STATIC_URL', 'static/')
+STATIC_ROOT = config.get('STATIC_ROOT', os.path.join(BASE_DIR, 'static_root'))
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
@@ -145,12 +154,12 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 IN_PRODUCTION = True
 MAILERLITE = {
-   "api_key": "mailerlite_api_key",
-   "group_id": "mailerlite_subscriber_group_id"
+   "api_key": config.get('MAILERLITE_API_KEY', "mailerlite_api_key"),
+   "group_id": config.get('MAILERLITE_GROUP_ID', "mailerlite_subscriber_group_id"),
 }
 
-ADMIN_KEY = 'admin-key'
-UNSPLASH_API_KEY = '<UNSPLASH_API_KEY>'
+ADMIN_KEY = config.get('ADMIN_KEY', 'admin-key')
+UNSPLASH_API_KEY = config.get('UNSPLASH_API_KEY', '<UNSPLASH_API_KEY>')
 
-WORDPRESS_ENC_PUBLIC_KEY = '<WORDPRESS_ENC_PUBLIC_KEY>'
-WORDPRESS_ENC_PRIVATE_KEY = '<WORDPRESS_ENC_PRIVATE_KEY>'
+WORDPRESS_ENC_PUBLIC_KEY = config.get('WORDPRESS_ENC_PUBLIC_KEY', '<WORDPRESS_ENC_PUBLIC_KEY>')
+WORDPRESS_ENC_PRIVATE_KEY = config.get('WORDPRESS_ENC_PRIVATE_KEY', '<WORDPRESS_ENC_PRIVATE_KEY>')
