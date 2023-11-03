@@ -17,10 +17,16 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import path, include
 from django.conf import settings
+from django.http import JsonResponse
+
+def home(request): 
+    return JsonResponse({})
 
 urlpatterns = [
     path('', include('shuffle.seo.urls')),
     path('', include('shuffle.wordpress.urls')),
+
+    path('', home),
 
     path(f'admin/{settings.ADMIN_KEY}/', admin.site.urls),
 ]
