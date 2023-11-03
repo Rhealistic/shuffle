@@ -48,13 +48,11 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles',
+    'django.contrib.staticfiles'
+]
 
-    'shuffle.artist',
-    'shuffle.curator',
-    'shuffle.wordpress',
-
-    'bootstrap5',
+INSTALLED_APPS += [
+   x.strip() for x in config.get('INSTALLED_APPS', "").split(",")
 ]
 
 MIDDLEWARE = [
@@ -67,7 +65,7 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'shuffle.urls'
+ROOT_URLCONF = config.get('ROOT_URLCONF', 'shuffle.urls')
 
 TEMPLATES = [
     {
@@ -132,7 +130,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = 'en-us'
 
-TIME_ZONE = 'UTC'
+TIME_ZONE = config.get('TIME_ZONE', 'UTC')
 
 USE_I18N = True
 

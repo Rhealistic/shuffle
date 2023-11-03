@@ -27,9 +27,35 @@ class Site(models.Model):
     username = models.CharField(max_length=128, null=True)
     password = models.CharField(max_length=128, null=True)
 
+    business_name = models.CharField(max_length=128, null=True, blank=True)
+    business_phone_number = models.CharField(max_length=20, null=True, blank=True)
+    business_street_address = models.CharField(max_length=100, null=True, blank=True)
+    business_address_locality = models.CharField(max_length=100, null=True, blank=True)
+    business_address_region = models.CharField(max_length=128, null=True, blank=True)
+    business_postal_code = models.CharField(max_length=128, null=True, blank=True)
+    business_country = models.CharField(max_length=50, null=True, blank=True)
+
+    wp_business_deets_set = models.BooleanField(default=False)
+
+    created_at = models.DateTimeField(null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, auto_now=True)
+
     class Meta:
         db_table = "wordpress_site"
 
+    @property
+    def kyc_done(self):
+        return (
+            self.wp_business_deets_set and (
+                self.business_name and
+                self.business_phone_number and
+                self.business_street_address and
+                self.business_address_locality and
+                self.business_address_region and
+                self.business_postal_code and
+                self.business_country
+            )
+        ) is not None
 
     @property
     def encoded_password(self):
@@ -73,6 +99,9 @@ class Post(models.Model):
 
     meta_description = models.CharField(max_length=300)
     meta_keywords = models.CharField(max_length=300)
+
+    created_at = models.DateTimeField(null=True, auto_now_add=True)
+    updated_at = models.DateTimeField(null=True, auto_now=True)
 
     class Meta:
         db_table = "wordpress_post"
