@@ -29,7 +29,7 @@ def artist_view(request, artist_id=None):
             **json.loads(request.body)
         }
 
-        form = ArtistForm(data=data)
+        form = ArtistForm(data=data, instance=artist)
         if form.is_valid():
             artist = form.save()
             
