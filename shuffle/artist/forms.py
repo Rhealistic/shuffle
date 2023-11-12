@@ -27,13 +27,25 @@ class ArtistForm(forms.ModelForm):
             'photo',
             'instagram',
             'country',
-            'artist_id',
             'opportunity_status',
             'invite_status',
             'performance_count',
             'next_performance',
             'last_performance'
         ]
+
+    def __init__(self, *args, **kwargs):
+        super(ArtistForm, self).__init__(*args, **kwargs)
+
+        self.fields['name'].required = False
+        self.fields['bio'].required = False
+        self.fields['email'].required = False
+        self.fields['phone'].required = False
+        self.fields['photo'].required = False
+        self.fields['instagram'].required = False
+        self.fields['country'].required = False
+        self.fields['country'].required = False
+
 
 class SearchImageForm(forms.Form):
     query = forms.CharField(max_length=150, required=True)
