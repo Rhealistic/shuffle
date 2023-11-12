@@ -33,6 +33,9 @@ class ArtistForm(forms.ModelForm):
             'next_performance',
             'last_performance'
         ]
+        widgets = {
+            'next_performance': forms.DateInput(format='%d/%m/%Y', attrs={'placeholder': 'DD/MM/YYYY'}),
+        }
 
     def __init__(self, *args, **kwargs):
         super(ArtistForm, self).__init__(*args, **kwargs)
