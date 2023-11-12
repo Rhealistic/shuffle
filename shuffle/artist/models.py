@@ -1,19 +1,20 @@
 import uuid 
 from django.db import models
 
-OPPORTUNITY_STATUSES = [
-    ('WAITING', 'Waiting'),
-    ('NEXT', 'Next'),
-    ('PERFORMED', 'Performed'),
-    ('NEXT_CYCLE', 'Next Cycle')
-]
-INVITE_STATUSES = [
-    ('ACCEPTED', "Accepted"),
-    ('REJECTED', "Accepted"),
-    ('UNAVAILABLE', "Unavailable"),
-]
 
 class Artist(models.Model):
+    OPPORTUNITY_STATUSES = [
+        ('WAITING', 'Waiting'),
+        ('NEXT', 'Next'),
+        ('PERFORMED', 'Performed'),
+        ('NEXT_CYCLE', 'Next Cycle')
+    ]
+    INVITE_STATUSES = [
+        ('ACCEPTED', "Accepted"),
+        ('REJECTED', "Accepted"),
+        ('UNAVAILABLE', "Unavailable"),
+    ]
+    
     name  = models.CharField(max_length=16)
     bio   = models.CharField(max_length=320)
     email = models.EmailField(unique=True)
