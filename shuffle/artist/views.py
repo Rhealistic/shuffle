@@ -56,12 +56,11 @@ def artist_view(request, artist_id=None, *args, **kwargs):
 
     data = {}
     if request.method == "POST":
-        data = request.body
+        data = json.loads(request.body)
         form = ArtistForm(data=data, instance=artist)
 
         if form.is_valid():
             form.save()
-            data = artist.dict()
 
             data = json.dumps(
                 artist.dict(),
