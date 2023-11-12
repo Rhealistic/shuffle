@@ -2,7 +2,7 @@ import json
 import traceback
 
 from .models import Artist
-from .forms import SubscriptionForm, SearchImageForm
+from .forms import SubscriptionForm, SearchImageForm, ArtistForm
 from .utils import update_mailerlite, UUIDEncoder, search_unsplash_photos
 
 from django.core.exceptions import ValidationError
@@ -12,7 +12,7 @@ from django.forms.models import model_to_dict
 from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_http_methods
+from django.views.decorators.http import require_GET, require_POST, require_http_methods
 
 
 @require_GET
@@ -49,14 +49,26 @@ def artist_list(request, artist_id=None, *args, **kwargs):
     artists = Artist.objects.all()
     return JsonResponse([ a.dict() for a in artists ], safe=False)
 
-@require_GET
+@require_http_methods(["GET", "POST"])
 def artist_view(request, artist_id=None, *args, **kwargs):
     artist = Artist.objects.get(artist_id=artist_id)
-    
-    data = json.dumps(
-        dict(artist_id=artist.artist_id, **artist_dict), 
-        cls=UUIDEncoder, 
-        indent=2)
+
+    if request.method == "POST":
+        form = ArtistForm(request.POST)
+
+        if form.is_valid():
+            form.save()
+            data = artist.dict()
+
+            data = json.dumps(
+                artist.dict(),
+                cls=UUIDEncoder, 
+                indent=2)
+        else:
+            data = {
+                "error": "Invalid Input",
+                "message": form.errors
+            }
 
     return JsonResponse(data)
 

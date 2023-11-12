@@ -21,7 +21,7 @@ class Artist(models.Model):
     instagram = models.URLField(blank=True, null=True)
     country = models.CharField(max_length=3, default="KEN")
     
-    artist_id = models.UUIDField(max_length=30, default = uuid.uuid4, editable = False)
+    artist_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     mailerlite_subscriber_id = models.CharField(max_length=30, null=True, blank=True)
     mailerlite_subscriber_group_id = models.CharField(max_length=30, null=True, blank=True)
 
