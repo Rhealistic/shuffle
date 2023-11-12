@@ -3,6 +3,7 @@ from django.db import models
 
 OPPORTUNITY_STATUSES = [
     ('WAITING', 'Waiting'),
+    ('NEXT', 'Next'),
     ('PERFORMED', 'Performed'),
     ('NEXT_CYCLE', 'Next Cycle')
 ]
