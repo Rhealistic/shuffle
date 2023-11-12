@@ -1,4 +1,4 @@
-import json
+from shuffle.core.utils import json
 import traceback
 
 from .models import Artist
@@ -64,7 +64,6 @@ def artist_view(request, artist_id=None, *args, **kwargs):
 
             data = json.dumps(
                 artist.dict(),
-                cls=UUIDEncoder, 
                 indent=2)
         else:
             data = {
