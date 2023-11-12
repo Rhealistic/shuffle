@@ -47,7 +47,7 @@ def search_image(request):
 @require_GET
 def artist_list(request, artist_id=None, *args, **kwargs):
     artists = Artist.objects.all()
-    return JsonResponse([ model_to_dict(a) for a in artists ], safe=False)
+    return JsonResponse([ a.dict() for a in artists ], safe=False)
 
 @require_GET
 def artist_view(request, artist_id=None, *args, **kwargs):

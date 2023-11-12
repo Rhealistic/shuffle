@@ -36,3 +36,24 @@ class Artist(models.Model):
 
     class Meta:
         db_table = "artist_profile"
+
+    def dict(self):
+        return dict(
+            name=self.name,
+            bio=self.bio,
+            email=self.email,
+            phone=self.phone,
+            photo=self.photo,
+            instagram=self.instagram,
+            country=self.country,
+            artist_id=self.artist_id,
+            mailerlite_subscriber_id=self.mailerlite_subscriber_id,
+            mailerlite_subscriber_group_id=self.mailerlite_subscriber_group_id,
+            opportunity_status=self.opportunity_status,
+            invite_status=self.invite_status,
+            performance_count=self.performance_count,
+            next_performance=self.next_performance,
+            last_performance=self.last_performance,
+            created_at=self.created_at,
+            updated_at=self.updated_at
+        )
