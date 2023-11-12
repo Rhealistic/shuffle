@@ -25,7 +25,7 @@ class Artist(models.Model):
     mailerlite_subscriber_id = models.CharField(max_length=30, null=True)
     mailerlite_subscriber_group_id = models.CharField(max_length=30, null=True)
 
-    opportunity_status = models.CharField(max_length=15, choices=OPPORTUNITY_STATUSES, null=True)
+    opportunity_status = models.CharField(max_length=15, choices=OPPORTUNITY_STATUSES, default="WAITING")
     invite_status = models.CharField(max_length=15, choices=INVITE_STATUSES, null=True)
     performance_count = models.PositiveSmallIntegerField(default=0)
 
