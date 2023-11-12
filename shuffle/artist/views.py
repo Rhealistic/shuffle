@@ -73,7 +73,7 @@ def artist_view(request, artist_id=None, *args, **kwargs):
     else:
         data = artist.dict()
 
-    return JsonResponse(data)
+    return JsonResponse(data, safe=False)
 
 @require_http_methods(["GET"])
 def home(*args, **kwargs):
