@@ -49,6 +49,7 @@ def artist_list(request, artist_id=None, *args, **kwargs):
     artists = Artist.objects.all()
     return JsonResponse([ a.dict() for a in artists ], safe=False)
 
+@csrf_exempt
 @require_http_methods(["GET", "POST"])
 def artist_view(request, artist_id=None, *args, **kwargs):
     artist = Artist.objects.get(artist_id=artist_id)
