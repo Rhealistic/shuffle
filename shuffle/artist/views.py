@@ -56,7 +56,8 @@ def artist_view(request, artist_id=None, *args, **kwargs):
 
     data = {}
     if request.method == "POST":
-        form = ArtistForm(data=request.POST, instance=artist)
+        data = request.body
+        form = ArtistForm(data=data, instance=artist)
 
         if form.is_valid():
             form.save()
