@@ -53,6 +53,7 @@ def artist_list(request, artist_id=None, *args, **kwargs):
 def artist_view(request, artist_id=None, *args, **kwargs):
     artist = Artist.objects.get(artist_id=artist_id)
 
+    data = {}
     if request.method == "POST":
         form = ArtistForm(request.POST)
 
@@ -69,6 +70,8 @@ def artist_view(request, artist_id=None, *args, **kwargs):
                 "error": "Invalid Input",
                 "message": form.errors
             }
+    else:
+        data = artist.dict()
 
     return JsonResponse(data)
 
