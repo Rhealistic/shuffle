@@ -38,11 +38,14 @@ def extract_body(request, *args, **kwargs):
         
     return data
 
-def create_database_url(database_dict, base_dir=settings.BASE_DIR.child("db")):
+def create_database_url(database_dict, base_dir=None):
     if database_dict:
         database_dict = database_dict.copy()
 
         if 'sqlite' in (database_dict.get('ENGINE') or ''):
+            if base_dir is None:
+                return
+
             return "sqlite:///%s" % (base_dir.child(database_dict.get('NAME')) or '')
         else:
             if 'PASSWORD' in database_dict:
@@ -108,3 +111,18 @@ def parse_date(date, format="%d-%b-%y", formats=None, to_date=True):
 def format_date(date, format="%d-%m-%Y"):
     return datetime.datetime.strftime(date, format)
 
+def exception_to_json(exception):
+    if settings.DEBUG:
+        import traceback
+
+        exception_data = {
+            'exception_type': type(exception).__name__,
+            'exception_message': str(exception),
+            'stack_trace': traceback.format_exception(
+                type(exception), 
+                exception, 
+                exception.__traceback__
+            )
+        }
+        
+        return json.dumps(exception_data)

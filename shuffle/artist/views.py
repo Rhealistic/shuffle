@@ -1,24 +1,24 @@
 from shuffle.core.utils import json
-import traceback
 
 from .models import Artist
 from .forms import SubscriptionForm, ArtistForm
 from .utils import update_mailerlite
 
 from django.conf import settings
-from django.http import JsonResponse
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET, require_http_methods
+
+from rest_framework.decorators import api_view
+from rest_framework.response import Response
 
 
-@require_GET
+@api_view(['GET'])
 def artist_list(request):
     artists = Artist.objects.all()
-    return JsonResponse([ a.dict() for a in artists ], safe=False)
+    return Response([ a.dict() for a in artists ])
 
 @csrf_exempt
-@require_http_methods(["GET", "POST"])
+@api_view(["GET", "POST"])
 def artist_view(request, artist_id=None):
     artist = Artist.objects.get(artist_id=artist_id)
 
@@ -32,16 +32,15 @@ def artist_view(request, artist_id=None):
         form = ArtistForm(data=data, instance=artist)
         if form.is_valid():
             artist = form.save()
-            
-            data = json.dumps(artist.dict(), indent=2)
+            data = artist.dict()
         else:
             data = { "error": "Invalid Input", "message": form.errors }
     else:
         data = artist.dict()
 
-    return JsonResponse(data, safe=False)
+    return Response(data)
 
-@require_http_methods(["GET", "POST"])
+@api_view(["GET", "POST"])
 def subscribe(request):
     artist: Artist = None
     form: SubscriptionForm = None
@@ -54,11 +53,12 @@ def subscribe(request):
             artist = form.save()
             successful = True
 
-            try:
-                if settings.IN_PRODUCTION:
-                    update_mailerlite(artist, **settings.MAILERLITE)
-            except Exception as e:
-                print(traceback.format_exc())
+            if settings.IN_PRODUCTION:
+                update_mailerlite(artist, **settings.MAILERLITE)
+        else:
+            return Response({
+                "errors": form.errors
+            })
 
     else:
         form = SubscriptionForm()
@@ -69,6 +69,6 @@ def subscribe(request):
         'successful': successful
     })
 
-@require_http_methods(["GET"])
+@api_view(['GET'])
 def home(request):
     return redirect('/santuri/jenga-jungle/')

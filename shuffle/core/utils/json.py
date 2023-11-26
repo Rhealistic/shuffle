@@ -66,6 +66,8 @@ except ImportError:
                 return str(o)
             elif isinstance(o, uuid.UUID):
                 return str(o)
+            elif isinstance(o, CallableBool):
+                return bool(o)
             else:
                 return super(_JSONEncoder, self).default(o)
 

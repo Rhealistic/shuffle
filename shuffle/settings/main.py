@@ -48,7 +48,9 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'django.contrib.staticfiles'
+    'django.contrib.staticfiles',
+
+    'rest_framework'
 ]
 
 INSTALLED_APPS += [
@@ -150,7 +152,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 #---------
 
-IN_PRODUCTION = True
+IN_PRODUCTION = not DEBUG
 MAILERLITE = {
    "api_key": config.get('MAILERLITE_API_KEY', "mailerlite_api_key"),
    "group_id": config.get('MAILERLITE_GROUP_ID', "mailerlite_subscriber_group_id"),
@@ -161,3 +163,26 @@ UNSPLASH_API_KEY = config.get('UNSPLASH_API_KEY', '<UNSPLASH_API_KEY>')
 
 WORDPRESS_ENC_PUBLIC_KEY = config.get('WORDPRESS_ENC_PUBLIC_KEY', '<WORDPRESS_ENC_PUBLIC_KEY>')
 WORDPRESS_ENC_PRIVATE_KEY = config.get('WORDPRESS_ENC_PRIVATE_KEY', '<WORDPRESS_ENC_PRIVATE_KEY>')
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': (
+        'oauth2_provider.contrib.rest_framework.OAuth2Authentication',
+        'rest_framework.authentication.BasicAuthentication',
+        'shuffle.core.auth.SessionAuthentication',
+    ),
+    'DEFAULT_PERMISSION_CLASSES': (
+        'rest_framework.permissions.IsAuthenticated',
+    ),
+    'DEFAULT_RENDERER_CLASSES': [
+        'rest_framework.renderers.BrowsableAPIRenderer',
+        'rest_framework.renderers.JSONRenderer',
+        'rest_framework.renderers.TemplateHTMLRenderer'
+    ],
+}
+
+if config.get('ENVIRONMENT', 'production') == 'production':
+    REST_FRAMEWORK['DEFAULT_RENDERER_CLASSES'] = [
+        'rest_framework.renderers.JSONRenderer'
+    ]
+    REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = []
+    REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = []
