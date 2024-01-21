@@ -1,10 +1,13 @@
 from shuffle.core.utils import json
+from shuffle.curator.models import Application, Concept, Curator
+from shuffle.curator.serializers import ApplicationSerializer
 
 from .models import Artist
 from .forms import SubscriptionForm, ArtistForm
 from .utils import update_mailerlite
 
 from django.conf import settings
+from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
@@ -40,35 +43,66 @@ def artist_view(request, artist_id=None):
 
     return Response(data)
 
-@api_view(["GET", "POST"])
-def subscribe(request):
+# @api_view(["GET", "POST"])
+def subscribe(request, curator_slug=None, concept_slug=None):
     artist: Artist = None
     form: SubscriptionForm = None
     successful: bool = False
 
-    if request.method == "POST":
-        form = SubscriptionForm(request.POST, request.FILES)
-        
-        if form.is_valid():
-            artist = form.save()
-            successful = True
+    try:
+        if request.method == "POST":
+            form = SubscriptionForm(request.POST, request.FILES)
+            
+            if form.is_valid():
+                artist = form.save()
+                successful = True
 
-            if settings.IN_PRODUCTION:
-                update_mailerlite(artist, **settings.MAILERLITE)
+                if settings.IN_PRODUCTION:
+                    update_mailerlite(artist, **settings.MAILERLITE)
+
+                concept = Concept.objects.get(
+                    slug=concept_slug,
+                    concept__curator__slug=curator_slug
+                )
+                application = Application\
+                    .objects\
+                    .create(
+                        concept=concept, 
+                        artist=artist, 
+                        status=Application.PENDING
+                    )
+                
+                serializer = ApplicationSerializer(instance=application)
+
+                return render(request, "add_subscriber.html", {
+                    'artist': serializer.data,
+                    'form': form,
+                    'successful': successful
+                })
+            else:
+                return Response({
+                    "errors": form.errors
+                })
+
         else:
-            return Response({
-                "errors": form.errors
+            form = SubscriptionForm()
+
+            return render(request, "add_subscriber.html", {
+                'artist': artist,
+                'form': form,
+                'successful': successful
             })
 
-    else:
-        form = SubscriptionForm()
 
-    return render(request, "add_subscriber.html", {
-        'artist': artist,
-        'form': form,
-        'successful': successful
-    })
+    except ObjectDoesNotExist as e:
+        return Response({
+            "errors": "Error"
+        })
+    except Exception as e:
+        return Response({
+            "errors": "Error"
+        })
 
-@api_view(['GET'])
+
 def home(request):
     return redirect('/santuri/jenga-jungle/')

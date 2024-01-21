@@ -33,6 +33,7 @@ class Artist(models.Model):
 
     next_performance = models.DateTimeField(null=True, blank=True)
     last_performance = models.DateTimeField(null=True, blank=True)
+    
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
@@ -59,3 +60,10 @@ class Artist(models.Model):
             created_at=self.created_at,
             updated_at=self.updated_at
         )
+    
+class Opportunity(models.Model):
+    artist  = models.ForeignKey('Artist', models.SET_NULL, null=True)
+    concept = models.ForeignKey('curator.Concept', models.SET_NULL, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True)

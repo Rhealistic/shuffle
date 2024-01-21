@@ -1,0 +1,100 @@
+body {
+    font-family: 'Oswald', sans-serif;
+    background-color: rgba(0, 0, 0, 0.95);
+    color: rgba(255, 255, 255, 0.9);
+}
+
+a {
+    color: rgba(255, 255, 255, 0.9);
+    text-decoration: none;
+}
+a:hover {
+    color: #fbb040;
+}
+
+.header {
+    margin-top: 50px;
+}
+.header h1 {
+    font-size: 45px;
+}
+.header h4 {
+    margin-top: 5px;
+    font-size: 14px;
+    font-weight: 400;
+    letter-spacing: 0.5px;
+}
+
+.links-list {
+    margin-top: 50px;
+    max-width: 70%;
+}
+@media only screen and (max-width: 375px) {
+    .links-list {
+        min-width: 50%;
+        max-width: 350px;
+    }
+}
+@media only screen and (min-width: 376px) {
+    .links-list {
+        margin-top: 50px;
+        min-width: 50%;
+        max-width: 80%;
+    }
+}
+
+.links-list li {
+    list-style: none;
+    padding: 12.5px 0;
+    border-top: 2.5px solid rgba(255, 255, 255, 0.9);
+}
+.links-list li:last-child {
+    border-bottom: 2.5px solid rgba(255, 255, 255, 0.9);
+}
+
+.links-list li > a {
+    color: rgba(255, 255, 255, 0.9);
+    margin-right: 7.5px;
+    text-decoration: none;
+    font-size: 18px;
+    letter-spacing: 0.75px;
+    font-weight: 300;
+    width: 20px;
+    height: 20px;
+}
+.links-list li > a:hover {
+    color: #fbb040;
+}
+.links-list li > a > img {
+    display: inline-block;
+    text-decoration: none;
+}
+.links-list li > a > img {
+    width: 20px;
+    height: 20px;
+}
+
+.links-list li > a.instagram:hover > img {
+    content: url('https://cdn.rhealistic.info/images/instagram-active.svg');
+}
+.links-list li > a.bandcamp:hover > img {
+    content: url('https://cdn.rhealistic.info/images/bandcamp-active.svg');
+}
+.links-list li > a.usanii:hover > img {
+    content: url('https://cdn.rhealistic.info/images/usanii-active.svg');
+}
+
+.media-showcase {
+    margin-top: 50px;
+}
+
+.main-content {
+    margin-bottom: 50px;
+}
+
+.slim-content {
+    padding: 0 10px;
+    max-width: 600px;
+    margin-left: auto;
+    margin-right: auto;
+}

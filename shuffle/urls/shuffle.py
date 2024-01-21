@@ -19,8 +19,9 @@ from django.urls import path, include
 from django.conf import settings
 
 urlpatterns = [
+    path(f'admin/{settings.ADMIN_KEY}/', admin.site.urls),
+    
     path('', include('shuffle.artist.urls')),
     path('', include('shuffle.curator.urls')),
 
-    path(f'admin/{settings.ADMIN_KEY}/', admin.site.urls),
 ]
