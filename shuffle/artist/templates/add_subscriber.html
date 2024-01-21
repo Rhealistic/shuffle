@@ -28,7 +28,7 @@
                 font-family: 'Playfair Display', serif;
                 font-weight: bolder;
                 color: #FFB24D;
-                font-size: 90px;
+                font-size: 75px;
                 font-weight: 600;
                 line-height: 1;
             }
@@ -68,7 +68,7 @@
             }
             .text-content {
                 font-family: 'JetBrains Mono', sans-serif;
-                font-size: 16px;
+                font-size: 18px;
                 font-weight: 200;
                 margin-top: 60px;
                 padding-right: 16px;
@@ -130,19 +130,6 @@
                                         With the introduction of Shuffle, Santuri East Africa empowers its community by having the curators gain more time to nurture artists, by delegating and automating repetitive processes that come with regular curation.
                                     </p>
                                 </div>
-                                <div>
-                                    <form class="subscribe-form" method="POST" action="." onsubmit="on_submit()">
-                                        {% csrf_token %}
-
-                                        {% bootstrap_form form layout='inline' %}
-
-                                        <div class="mt-4 col-5 col-xs-12 col-sm-12 col-md-6">
-                                            {% buttons %}
-                                                <input type="submit" id="submit-button" type="submit" class="btn btn-action btn-block" value="Submit Your Application >"/>
-                                            {% endbuttons %}
-                                        </div>
-                                    </form>
-                                </div>
                             </div>
                             <div class="col"></div>
                         </div>
@@ -151,6 +138,19 @@
                 <div class="footer form-container">
                     <div class="container">
                         <div class="row">
+                            <div>
+                                <form class="subscribe-form" method="POST" action="." onsubmit="on_submit()">
+                                    {% csrf_token %}
+
+                                    {% bootstrap_form form layout='inline' %}
+
+                                    <div class="mt-4 col-5 col-xs-12 col-sm-12 col-md-6">
+                                        {% buttons %}
+                                            <input type="submit" id="submit-button" type="submit" class="btn btn-action btn-block" value="Submit Your Application >"/>
+                                        {% endbuttons %}
+                                    </div>
+                                </form>
+                            </div>
                             <div class="col-lg-5 col-sm-12 col-md-6 m-auto">
                                 <img src="https://cdn.rhealistic.info/profiles/curators/santuri-east-africa/santuri-east-africa-logo-black.png" class="py-6 mx-auto d-block" alt="...">
                             </div>
