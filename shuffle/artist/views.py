@@ -56,7 +56,7 @@ def subscribe(request, curator_slug=None, concept_slug=None):
     try:
         concept = Concept.objects.get(
             slug=concept_slug,
-            concept__curator__slug=curator_slug
+            curator__slug=curator_slug
         )
 
         if request.method == "GET":
