@@ -4,7 +4,7 @@ from shuffle.curator.serializers import ApplicationSerializer
 
 from .models import Artist
 from .forms import SubscriptionForm, ArtistForm
-from .utils import update_mailerlite
+from .utils import notify_subscriber, update_mailerlite
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
@@ -73,6 +73,7 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                     )
                 
                 serializer = ApplicationSerializer(instance=application)
+                print(notify_subscriber(artist))
 
                 return render(request, "add_subscriber.html", {
                     'artist': serializer.data,

@@ -67,3 +67,14 @@ def search_unsplash_photos(query):
     photos = response.json()
     if 'results' in photos and photos['results']:
         return random.choice(photos['results'])
+
+
+def notify_subscriber(artist: Artist):    
+    response = requests.post(
+        "https://cloud.activepieces.com/api/v1/webhooks/TDpEguqydLUJe4SG2zp7X/sync", data={
+            "artist_name": artist.name,
+            "phone_number": artist.phone
+        }
+    )
+
+    return response.json()

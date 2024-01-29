@@ -28,7 +28,7 @@
                 font-family: 'Playfair Display', serif;
                 font-weight: bolder;
                 color: #FFB24D;
-                font-size: 75px;
+                font-size: 65px;
                 font-weight: 600;
                 line-height: 1;
             }
@@ -36,14 +36,16 @@
                 color: #198754;
             }
             .btn-action {
+                background-color: #fff;
+                color: #7d322f;
+                border: 1px solid #7d322f;
+                font-size: 18px;
+            }
+            .btn-action:hover {
                 background-color: #7d322f;
                 border-color: #000;
                 font-weight: 700;
                 color: rgb(0, 213, 255);
-            }
-            .btn-action:hover {
-                background-color: #fff;
-                color: #7d322f;
             }
 
             form {
@@ -66,14 +68,24 @@
                 padding-top: 72px;
                 padding-bottom: 72px;
             }
+            input::placeholder {
+                color: rgba(255, 255, 255, 0.65) !important;
+            }
+            textarea::placeholder {
+                color: rgba(255, 255, 255, 0.65) !important;
+            }
+
             .text-content {
                 font-family: 'JetBrains Mono', sans-serif;
                 font-size: 18px;
-                font-weight: 200;
+                font-weight: 400;
                 margin-top: 60px;
                 padding-right: 16px;
                 line-height: 1.5;
                 
+            }
+            .form-control {
+                font-size: 18px;
             }
             .form-control:focus {
                 border-color: #86b7fe;
@@ -88,7 +100,6 @@
             }
 
             .subscribe-form {
-                margin-top: 60px;
             }
 
             .box {
@@ -138,13 +149,13 @@
                 <div class="footer form-container">
                     <div class="container">
                         <div class="row">
-                            <div>
+                            <div class="mb-5">
                                 <form class="subscribe-form" method="POST" action="." onsubmit="on_submit()">
                                     {% csrf_token %}
 
                                     {% bootstrap_form form layout='inline' %}
 
-                                    <div class="mt-4 col-5 col-xs-12 col-sm-12 col-md-6">
+                                    <div class="mt-5 col-5 col-xs-12 col-sm-12 col-md-6">
                                         {% buttons %}
                                             <input type="submit" id="submit-button" type="submit" class="btn btn-action btn-block" value="Submit Your Application >"/>
                                         {% endbuttons %}
