@@ -61,9 +61,8 @@ def subscribe(request, curator_slug=None, concept_slug=None):
 
         if request.method == "GET":
             return render(request, "add_subscriber.html", {
-                'artist': artist,
                 'form': SubscriptionForm(),
-                'successful': True
+                'start': True
             }, status=status.HTTP_200_OK)
         
         elif request.method == "POST":
@@ -91,6 +90,7 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                             notify_subscriber(artist)
                             return render(request, "add_subscriber.html", {
                                 "artist": serializer.data,
+                                "start": False,
                                 "form": form,
                                 "successful": True
                             }, status=status.HTTP_201_CREATED)
