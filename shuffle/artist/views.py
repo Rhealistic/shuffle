@@ -94,12 +94,14 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                                 "form": form,
                                 "successful": True
                             }, status=status.HTTP_201_CREATED)
-                        except Exception:
-                            return Response({
+                        except Exception as e:
+                            data = {
                                 "successful": False,
                                 "message": "Error notifying user",
-                                "errors": form.errors
-                            }, status=status.HTTP_400_BAD_REQUEST)
+                            }
+                            if settings.DEBUG:
+                                data["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
+                            return Response(data, status=status.HTTP_400_BAD_REQUEST)
                         
             else:
                 return Response({
@@ -113,15 +115,15 @@ def subscribe(request, curator_slug=None, concept_slug=None):
             "message": "Concept not found",
         }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        d = {
+        data = {
             "successful": False,
             "errors": "500: Server Error"
         }
 
         if settings.DEBUG:
-            d["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
+            data["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
 
-        return Response(d, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+        return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def home(request):
