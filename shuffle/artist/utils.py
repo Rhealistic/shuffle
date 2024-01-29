@@ -73,7 +73,8 @@ def notify_subscriber(artist: Artist):
     response = requests.post(
         "https://cloud.activepieces.com/api/v1/webhooks/TDpEguqydLUJe4SG2zp7X/sync", data={
             "artist_name": artist.name,
-            "phone_number": artist.phone
+            "phone_number": artist.phone,
+            "status": "signup"
         }
     )
 
