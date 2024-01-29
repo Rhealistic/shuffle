@@ -1,5 +1,5 @@
 from shuffle.core.utils import json
-from shuffle.curator.models import Application, Concept, Curator
+from shuffle.curator.models import Application, Concept
 from shuffle.curator.serializers import ApplicationSerializer
 
 from .models import Artist
@@ -11,7 +11,8 @@ from django.core.exceptions import ObjectDoesNotExist
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 
 
@@ -43,7 +44,8 @@ def artist_view(request, artist_id=None):
 
     return Response(data)
 
-# @api_view(["GET", "POST"])
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
 def subscribe(request, curator_slug=None, concept_slug=None):
     artist: Artist = None
     form: SubscriptionForm = None
