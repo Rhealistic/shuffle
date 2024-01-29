@@ -113,11 +113,15 @@ def subscribe(request, curator_slug=None, concept_slug=None):
             "message": "Concept not found",
         }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
-        return Response({
+        d = {
             "successful": False,
-            "errors": "500: Server Error",
-            "e": e
-        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+            "errors": "500: Server Error"
+        }
+
+        if settings.DEBUG:
+            d["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
+
+        return Response(d, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def home(request):
