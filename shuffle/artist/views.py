@@ -15,6 +15,7 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
+from rest_framework import status
 
 
 @api_view(['GET'])
@@ -38,19 +39,19 @@ def artist_view(request, artist_id=None):
         if form.is_valid():
             artist = form.save()
             data = artist.dict()
+            return Response(data, status=status.HTTP_201_CREATED)
         else:
             data = { "error": "Invalid Input", "message": form.errors }
+            return Response(data, status=status.HTTP_400_BAD_REQUEST)
     else:
         data = artist.dict()
+        return Response(data, status=status.HTTP_200_OK)
 
-    return Response(data)
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def subscribe(request, curator_slug=None, concept_slug=None):
     artist: Artist = None
-    form: SubscriptionForm = None
-    successful: bool = False
 
     try:
         concept = Concept.objects.get(
@@ -58,12 +59,18 @@ def subscribe(request, curator_slug=None, concept_slug=None):
             concept__curator__slug=curator_slug
         )
 
-        if request.method == "POST":
+        if request.method == "GET":
+            return render(request, "add_subscriber.html", {
+                'artist': artist,
+                'form': SubscriptionForm(),
+                'successful': True
+            }, status=status.HTTP_200_OK)
+        
+        elif request.method == "POST":
             form = SubscriptionForm(request.POST, request.FILES)
             
             if form.is_valid():
                 artist = form.save()
-                successful = True
 
                 with transaction.atomic():
                     if settings.IN_PRODUCTION:
@@ -83,39 +90,33 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                         try:
                             notify_subscriber(artist)
                             return render(request, "add_subscriber.html", {
-                                'artist': serializer.data,
-                                'form': form,
-                                'successful': successful
-                            })
+                                "artist": serializer.data,
+                                "form": form,
+                                "successful": True
+                            }, status=status.HTTP_201_CREATED)
                         except Exception:
                             return Response({
+                                "successful": False,
                                 "message": "Error notifying user",
                                 "errors": form.errors
-                            })
-
+                            }, status=status.HTTP_400_BAD_REQUEST)
+                        
             else:
                 return Response({
                     "errors": form.errors
                 })
 
-        else:
-            form = SubscriptionForm()
-
-            return render(request, "add_subscriber.html", {
-                'artist': artist,
-                'form': form,
-                'successful': successful
-            })
-
     except ObjectDoesNotExist as e:
         return Response({
+            "successful": False,
             "errors": ["404: Object not found"],
             "message": "Concept not found",
-        })
+        }, status=status.HTTP_404_NOT_FOUND)
     except Exception as e:
         return Response({
-            "errors": "500: Server Error"
-        })
+            "successful": False,
+            "errors": "500: Server Error",
+        }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
 def home(request):
