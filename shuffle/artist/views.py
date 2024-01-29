@@ -116,6 +116,7 @@ def subscribe(request, curator_slug=None, concept_slug=None):
         return Response({
             "successful": False,
             "errors": "500: Server Error",
+            "e": e
         }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
