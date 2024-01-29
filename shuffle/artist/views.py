@@ -107,10 +107,10 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                 'successful': successful
             })
 
-    except Concept.DoesNotExist as e:
+    except ObjectDoesNotExist as e:
         return Response({
+            "errors": ["404: Object not found"],
             "message": "Concept not found",
-            "errors": "404: Object not found"
         })
     except Exception as e:
         return Response({
