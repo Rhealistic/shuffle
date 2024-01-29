@@ -8,6 +8,7 @@ from .utils import notify_subscriber, update_mailerlite
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.db import transaction
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 
@@ -59,29 +60,38 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                 artist = form.save()
                 successful = True
 
-                if settings.IN_PRODUCTION:
-                    update_mailerlite(artist, **settings.MAILERLITE)
+                with transaction.atomic():
+                    if settings.IN_PRODUCTION:
+                        update_mailerlite(artist, **settings.MAILERLITE)
 
-                concept = Concept.objects.get(
-                    slug=concept_slug,
-                    concept__curator__slug=curator_slug
-                )
-                application = Application\
-                    .objects\
-                    .create(
-                        concept=concept, 
-                        artist=artist, 
-                        status=Application.PENDING
+                    concept = Concept.objects.get(
+                        slug=concept_slug,
+                        concept__curator__slug=curator_slug
                     )
-                
-                serializer = ApplicationSerializer(instance=application)
-                print(notify_subscriber(artist))
+                    application = Application\
+                        .objects\
+                        .create(
+                            concept=concept, 
+                            artist=artist, 
+                            status=Application.PENDING
+                        )
+                    
+                    serializer = ApplicationSerializer(instance=application)
 
-                return render(request, "add_subscriber.html", {
-                    'artist': serializer.data,
-                    'form': form,
-                    'successful': successful
-                })
+                    if artist.name and artist.phone:
+                        try:
+                            notify_subscriber(artist)
+                            return render(request, "add_subscriber.html", {
+                                'artist': serializer.data,
+                                'form': form,
+                                'successful': successful
+                            })
+                        except Exception:
+                            return Response({
+                                "message": "Error notifying user",
+                                "errors": form.errors
+                            })
+
             else:
                 return Response({
                     "errors": form.errors
