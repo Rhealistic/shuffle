@@ -53,6 +53,11 @@ def subscribe(request, curator_slug=None, concept_slug=None):
     successful: bool = False
 
     try:
+        concept = Concept.objects.get(
+            slug=concept_slug,
+            concept__curator__slug=curator_slug
+        )
+
         if request.method == "POST":
             form = SubscriptionForm(request.POST, request.FILES)
             
@@ -64,10 +69,6 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                     if settings.IN_PRODUCTION:
                         update_mailerlite(artist, **settings.MAILERLITE)
 
-                    concept = Concept.objects.get(
-                        slug=concept_slug,
-                        concept__curator__slug=curator_slug
-                    )
                     application = Application\
                         .objects\
                         .create(
@@ -106,14 +107,14 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                 'successful': successful
             })
 
-
-    except ObjectDoesNotExist as e:
+    except Concept.DoesNotExist as e:
         return Response({
-            "errors": "Error"
+            "message": "Concept not found",
+            "errors": "404: Object not found"
         })
     except Exception as e:
         return Response({
-            "errors": "Error"
+            "errors": "500: Server Error"
         })
 
 
