@@ -1,5 +1,7 @@
 from django import forms
 
+from shuffle.core.utils.helpers import is_valid_phone_number
+
 from .models import Artist
 
 class SubscriptionForm(forms.ModelForm):
@@ -16,6 +18,20 @@ class SubscriptionForm(forms.ModelForm):
             'bio': forms.Textarea(attrs={'rows': 3}),
         }
 
+    def clean_phone(self):
+        phone: str = self.cleaned_data['phone']
+
+        if phone.startswith("0"):
+            phone = f"+254{phone[1:]}"
+
+        if Artist.objects.filter(phone=phone).exists():
+            raise forms.ValidationError("The phone number is in use")
+
+        if not is_valid_phone_number(phone):
+            raise forms.ValidationError("Invalid Safaricom phone Number")
+        
+        return phone
+
 class ArtistForm(forms.ModelForm):
     class Meta:
         model = Artist
@@ -27,8 +43,6 @@ class ArtistForm(forms.ModelForm):
             'photo',
             'instagram',
             'country',
-            'opportunity_status',
-            'invite_status',
             'performance_count',
             'next_performance',
             'last_performance'
@@ -44,7 +58,6 @@ class ArtistForm(forms.ModelForm):
         self.fields['photo'].required = False
         self.fields['instagram'].required = False
         self.fields['country'].required = False
-        self.fields['opportunity_status'].required = False
         self.fields['performance_count'].required = False
 
 class SearchImageForm(forms.Form):

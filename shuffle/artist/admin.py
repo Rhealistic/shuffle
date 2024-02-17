@@ -10,8 +10,6 @@ class ArtistAdmin(admin.ModelAdmin):
         "email",
         "phone",
         "instagram",
-        "opportunity_status",
-        "invite_status",
         "performance_count",
     ]
 
@@ -19,5 +17,6 @@ class ArtistAdmin(admin.ModelAdmin):
 class OpportunityAdmin(admin.ModelAdmin):
     list_display = [
         "artist",
-        "concept"
+        "concept",
+        "status"
     ]

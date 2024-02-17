@@ -1,11 +1,24 @@
 from django.contrib import admin
 
-from .models import Curator, Concept, Application, Shuffle
+from .models import Curator, Concept, Shuffle, Organization
+
+@admin.register(Organization)
+class OrganizationAdmin(admin.ModelAdmin):
+    list_display = [
+        "name",
+        "slug",
+        "email",
+        "phone",
+        "logo",
+        "created_at"
+    ]
+
 
 @admin.register(Curator)
 class CuratorAdmin(admin.ModelAdmin):
     list_display = [
         "name",
+        "slug",
         "email",
         "phone",
         "created_at"
@@ -20,15 +33,6 @@ class ConceptAdmin(admin.ModelAdmin):
         "slug",
         "poster",
         "date"
-    ]
-
-@admin.register(Application)
-class ApplicationAdmin(admin.ModelAdmin):
-    list_display = [
-        "artist",
-        "concept",
-        "status",
-        "created_at"
     ]
 
 @admin.register(Shuffle)

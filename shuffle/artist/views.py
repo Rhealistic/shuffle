@@ -1,13 +1,14 @@
 from shuffle.core.utils import json
-from shuffle.curator.models import Application, Concept
-from shuffle.curator.serializers import ApplicationSerializer
+from shuffle.curator.models import Concept
 
-from .models import Artist
+from .models import Artist, Opportunity
 from .forms import SubscriptionForm, ArtistForm
 from .utils import notify_subscriber, update_mailerlite
+from .serializers import OpportunitySerializer, ArtistSerializer
 
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
+from django.contrib import messages
 from django.db import transaction
 from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
@@ -15,43 +16,16 @@ from django.views.decorators.csrf import csrf_exempt
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework import status
-
-
-@api_view(['GET'])
-def artist_list(request):
-    artists = Artist.objects.all()
-    return Response([ a.dict() for a in artists ])
-
-@csrf_exempt
-@api_view(["GET", "POST"])
-def artist_view(request, artist_id=None):
-    artist = Artist.objects.get(artist_id=artist_id)
-
-    data = {}
-    if request.method == "POST":
-        data = {
-            **artist.dict(),
-            **json.loads(request.body)
-        }
-
-        form = ArtistForm(data=data, instance=artist)
-        if form.is_valid():
-            artist = form.save()
-            data = artist.dict()
-            return Response(data, status=status.HTTP_201_CREATED)
-        else:
-            data = { "error": "Invalid Input", "message": form.errors }
-            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-    else:
-        data = artist.dict()
-        return Response(data, status=status.HTTP_200_OK)
+from rest_framework import status as drf_status
 
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def subscribe(request, curator_slug=None, concept_slug=None):
     artist: Artist = None
+    start = True
+    successful = False
+    errors = None
 
     try:
         concept = Concept.objects.get(
@@ -60,10 +34,8 @@ def subscribe(request, curator_slug=None, concept_slug=None):
         )
 
         if request.method == "GET":
-            return render(request, "add_subscriber.html", {
-                'form': SubscriptionForm(),
-                'start': True
-            }, status=status.HTTP_200_OK)
+            form = SubscriptionForm()
+            status = drf_status.HTTP_200_OK
         
         elif request.method == "POST":
             form = SubscriptionForm(request.POST, request.FILES)
@@ -75,55 +47,93 @@ def subscribe(request, curator_slug=None, concept_slug=None):
                     if settings.IN_PRODUCTION:
                         update_mailerlite(artist, **settings.MAILERLITE)
 
-                    application = Application\
+                    Opportunity\
                         .objects\
                         .create(
-                            concept=concept, 
-                            artist=artist, 
-                            status=Application.PENDING
+                            concept=concept,
+                            artist=artist,
+                            status=Opportunity.WAITING_APPROVAL
                         )
-                    
-                    serializer = ApplicationSerializer(instance=application)
+                    serializer = ArtistSerializer(instance=artist)
 
                     if artist.name and artist.phone:
                         try:
-                            notify_subscriber(artist)
-                            return render(request, "add_subscriber.html", {
-                                "artist": serializer.data,
-                                "start": False,
-                                "form": form,
-                                "successful": True
-                            }, status=status.HTTP_201_CREATED)
+                            print(notify_subscriber(artist))
+                            status = status.HTTP_201_CREATED
+                            artist = serializer.data
+                            successful = True
+
+                            messages.success("Your profile was created successfully!")
+
                         except Exception as e:
+                            status = status.HTTP_400_BAD_REQUEST
                             data = {
                                 "successful": False,
-                                "message": "Error notifying user",
+                                "error": {
+                                    "message": "Error notifying user"
+                                }
                             }
+                            
+                            messages.error("ERR_N01: An unexpected error occured")
                             if settings.DEBUG:
                                 data["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
-                            return Response(data, status=status.HTTP_400_BAD_REQUEST)
-                        
-            else:
-                return Response({
-                    "errors": form.errors
-                })
 
     except ObjectDoesNotExist as e:
-        return Response({
-            "successful": False,
-            "errors": ["404: Object not found"],
-            "message": "Concept not found",
-        }, status=status.HTTP_404_NOT_FOUND)
+        errors = {
+            "ERR_N404: Object not found"
+        }
+        status = drf_status.HTTP_404_NOT_FOUND
+
+        messages.error("ERR_N00: Concept not found")
     except Exception as e:
-        data = {
-            "successful": False,
+        errors = {
             "errors": "500: Server Error"
         }
+        status = drf_status.HTTP_500_INTERNAL_SERVER_ERROR
 
         if settings.DEBUG:
             data["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
+            messages.error("ERR_N00: An unexpected error occured")
+    
+    return render(request, "add_subscriber.html", {
+        "artist": artist,
+        "form": form,
+        "errors": errors,
+        "start": start,
+        "successful": successful,
+    }, status=status)
 
-        return Response(data, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def artist_list(request):
+    artists = Artist.objects.all()
+    return Response([ a.dict() for a in artists ])
+
+
+@csrf_exempt
+@api_view(["GET", "POST"])
+def artist_view(request, artist_id=None):
+    artist = Artist.objects.get(artist_id=artist_id)
+
+    data = {}
+    if request.method == "POST":
+        data = {
+            **artist.dict(),
+            **json.loads(request.data)
+        }
+
+        form = ArtistForm(data=data, instance=artist)
+        if form.is_valid():
+            artist = form.save()
+            data = artist.dict()
+            return Response(data, status=drf_status.HTTP_201_CREATED)
+        else:
+            data = { "error": "Invalid Input", "message": form.errors }
+            return Response(data, status=drf_status.HTTP_400_BAD_REQUEST)
+    else:
+        data = artist.dict()
+        return Response(data, status=drf_status.HTTP_200_OK)
 
 
 def home(request):

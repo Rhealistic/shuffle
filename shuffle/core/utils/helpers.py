@@ -88,7 +88,7 @@ def get_file_location(instance, filename, prepend=None, specific_folder=None, by
     return file_location
 
 def is_valid_phone_number(phone_number):
-    if re.match(r"^(\+?254|0)7[\d]{8}$", phone_number):
+    if re.match(r"^(\+?254|0)(70|71|72|79|74[0-6]|748|757|759|76[89]|11[012345])[\d]{6,7}$", phone_number):
         return True
     return False
 

@@ -3,18 +3,6 @@ from django.db import models
 
 
 class Artist(models.Model):
-    OPPORTUNITY_STATUSES = [
-        ('WAITING', 'Waiting'),
-        ('NEXT', 'Next'),
-        ('PERFORMED', 'Performed'),
-        ('NEXT_CYCLE', 'Next Cycle')
-    ]
-    INVITE_STATUSES = [
-        ('ACCEPTED', "Accepted"),
-        ('REJECTED', "Accepted"),
-        ('UNAVAILABLE', "Unavailable"),
-    ]
-    
     name  = models.CharField(max_length=16)
     bio   = models.CharField(max_length=320)
     email = models.EmailField(unique=True)
@@ -27,8 +15,7 @@ class Artist(models.Model):
     mailerlite_subscriber_id = models.CharField(max_length=30, null=True, blank=True)
     mailerlite_subscriber_group_id = models.CharField(max_length=30, null=True, blank=True)
 
-    opportunity_status = models.CharField(max_length=15, choices=OPPORTUNITY_STATUSES, default="WAITING")
-    invite_status = models.CharField(max_length=15, choices=INVITE_STATUSES, null=True, blank=True)
+    selection_count = models.PositiveSmallIntegerField(default=0)
     performance_count = models.PositiveSmallIntegerField(default=0)
 
     next_performance = models.DateTimeField(null=True, blank=True)
@@ -52,8 +39,6 @@ class Artist(models.Model):
             artist_id=self.artist_id,
             mailerlite_subscriber_id=self.mailerlite_subscriber_id,
             mailerlite_subscriber_group_id=self.mailerlite_subscriber_group_id,
-            opportunity_status=self.opportunity_status,
-            invite_status=self.invite_status,
             performance_count=self.performance_count,
             next_performance=self.next_performance,
             last_performance=self.last_performance,
@@ -62,8 +47,32 @@ class Artist(models.Model):
         )
     
 class Opportunity(models.Model):
-    artist  = models.ForeignKey('Artist', models.SET_NULL, null=True)
     concept = models.ForeignKey('curator.Concept', models.SET_NULL, null=True)
+    artist  = models.ForeignKey('Artist', models.SET_NULL, related_name='artists', null=True)
 
+    POTENTIAL = 0
+    WAITING_APPROVAL = 1
+    NEXT_PERFORMING = 2
+    PERFORMED = 3
+    NEXT_CYCLE = 4
+    SKIP = 5
+    EXPIRED = 6
+    OPPORTUNITY_STATUSES = [
+        (POTENTIAL, 'Potential'),
+        (WAITING_APPROVAL, 'Waiting Approval'),
+        (NEXT_PERFORMING, 'Next Performing'),
+        (PERFORMED, 'Performed'),
+        (NEXT_CYCLE, 'Next Cycle'),
+        (SKIP, 'Skip'),
+        (EXPIRED, 'Expired')
+    ]
+    status = models.PositiveSmallIntegerField(
+        choices=OPPORTUNITY_STATUSES, default=WAITING_APPROVAL, null=True
+    )
+
+    skipped_at = models.DateTimeField(blank=True, null=True)
+    accepted_at = models.DateTimeField(blank=True, null=True)
+    expired_at = models.DateTimeField(blank=True, null=True)
+    
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)

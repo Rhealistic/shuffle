@@ -71,11 +71,11 @@ def search_unsplash_photos(query):
 
 def notify_subscriber(artist: Artist):    
     response = requests.post(
-        "https://cloud.activepieces.com/api/v1/webhooks/TDpEguqydLUJe4SG2zp7X/sync", data={
+        "https://cloud.activepieces.com/api/v1/webhooks/TDpEguqydLUJe4SG2zp7X", data={
             "artist_name": artist.name,
             "phone_number": artist.phone,
             "status": "signup"
         }
     )
 
-    return response.json()
+    return response.content
