@@ -12,6 +12,9 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
 class Curator(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, null=True)
@@ -23,6 +26,9 @@ class Curator(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    def __str__(self):
+        return self.name
 
 
 class Concept(models.Model):
@@ -37,6 +43,8 @@ class Concept(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
+    def __str__(self):
+        return self.title
 
 class Shuffle(models.Model):
     concept = models.ForeignKey('Concept', models.SET_NULL, null=True)
@@ -70,4 +78,7 @@ class Shuffle(models.Model):
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    def __str__(self):
+        return self.concept
         

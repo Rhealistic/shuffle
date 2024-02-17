@@ -24,6 +24,9 @@ class Artist(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
+    def __str__(self):
+        return self.name
+
     class Meta:
         db_table = "artist_profile"
 
@@ -76,3 +79,6 @@ class Opportunity(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    def __str__(self):
+        return f'{self.concept}: {self.artist}'
