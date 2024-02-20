@@ -18,7 +18,6 @@ class OrganizationAdmin(admin.ModelAdmin):
 class CuratorAdmin(admin.ModelAdmin):
     list_display = [
         "name",
-        "slug",
         "email",
         "phone",
         "created_at"

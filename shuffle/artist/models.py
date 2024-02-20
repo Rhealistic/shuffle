@@ -7,19 +7,27 @@ class Artist(models.Model):
     bio   = models.CharField(max_length=320)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15)
-    photo = models.URLField(help_text="Link to online photo", blank=True, null=True)
-    instagram = models.URLField(blank=True, null=True)
     country = models.CharField(max_length=3, default="KEN")
+    
+    photo = models.URLField(help_text="Link to online photo", blank=True, null=True)
+    mixcloud = models.URLField(help_text="Link to mixcloud", blank=True, null=True)
+    soundcloud = models.URLField(help_text="Link to soundcloud", blank=True, null=True)
+    epk = models.URLField(help_text="Link to EPK + Tech rider", blank=True, null=True)
+    instagram = models.URLField(blank=True, null=True)
     
     artist_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     mailerlite_subscriber_id = models.CharField(max_length=30, null=True, blank=True)
     mailerlite_subscriber_group_id = models.CharField(max_length=30, null=True, blank=True)
 
     selection_count = models.PositiveSmallIntegerField(default=0)
+    acceptance_count = models.PositiveSmallIntegerField(default=0)
+    expired_count = models.PositiveSmallIntegerField(default=0)
+    skip_count = models.PositiveSmallIntegerField(default=0)
     performance_count = models.PositiveSmallIntegerField(default=0)
 
     next_performance = models.DateTimeField(null=True, blank=True)
     last_performance = models.DateTimeField(null=True, blank=True)
+    is_active = models.BooleanField(null=True, default=True)
     
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
@@ -48,7 +56,8 @@ class Artist(models.Model):
             created_at=self.created_at,
             updated_at=self.updated_at
         )
-    
+
+
 class Opportunity(models.Model):
     concept = models.ForeignKey('curator.Concept', models.SET_NULL, null=True)
     artist  = models.ForeignKey('Artist', models.SET_NULL, related_name='artists', null=True)
@@ -65,7 +74,6 @@ class Opportunity(models.Model):
         (WAITING_APPROVAL, 'Waiting Approval'),
         (NEXT_PERFORMING, 'Next Performing'),
         (PERFORMED, 'Performed'),
-        (NEXT_CYCLE, 'Next Cycle'),
         (SKIP, 'Skip'),
         (EXPIRED, 'Expired')
     ]

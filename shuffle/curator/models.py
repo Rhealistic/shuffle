@@ -12,17 +12,17 @@ class Organization(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
+    is_active = models.BooleanField(default=True, null=True)
+
     def __str__(self):
         return self.name
 
 class Curator(models.Model):
     name = models.CharField(max_length=100)
-    slug = models.SlugField(max_length=100, null=True)
-
-    organization = models.ForeignKey('Organization', models.SET_NULL, null=True)
-
     email = models.EmailField()
     phone = models.CharField(max_length=30)
+
+    organization = models.ForeignKey('Organization', models.SET_NULL, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
@@ -63,7 +63,7 @@ class Shuffle(models.Model):
     next_shuffle = models.DateTimeField()
 
     start_date = models.DateTimeField(null=True)
-    end_date   = models.DateTimeField(null=True)
+    closed_at   = models.DateTimeField(null=True)
 
     STATUS = (
         (0, "Started"),

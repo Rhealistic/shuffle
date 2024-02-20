@@ -1,8 +1,12 @@
 from rest_framework import serializers
 
 from .models import \
-    Curator, Concept, Shuffle
+    Curator, Concept, Shuffle, Organization
 
+class OrganizationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Organization
+        exclude = ['id']
 
 class CuratorSerializer(serializers.ModelSerializer):
     class Meta:
@@ -22,3 +26,8 @@ class ShuffleSerializer(serializers.ModelSerializer):
     class Meta:
         model = Shuffle
         exclude = ['id']
+
+
+class ShuffleInputSerializer(serializers.Serializer):
+    concept_slug = serializers.SlugField()
+    concept_slug = serializers.SlugField()

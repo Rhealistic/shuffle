@@ -12,7 +12,9 @@ class SubscriptionForm(forms.ModelForm):
             'bio',
             'email',
             'phone',
-            'instagram'
+            'instagram',
+            'mixcloud',
+            'soundcloud',
         ]
         widgets = {
             'bio': forms.Textarea(attrs={'rows': 3}),
@@ -41,6 +43,8 @@ class ArtistForm(forms.ModelForm):
             'email',
             'phone',
             'photo',
+            'mixcloud',
+            'soundcloud',
             'instagram',
             'country',
             'performance_count',

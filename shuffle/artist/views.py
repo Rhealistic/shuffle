@@ -21,17 +21,15 @@ from rest_framework import status as drf_status
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
-def subscribe(request, curator_slug=None, concept_slug=None):
+def subscribe(request, organization_slug=None, concept_slug=None):
     artist: Artist = None
     start = True
     successful = False
     errors = None
 
     try:
-        concept = Concept.objects.get(
-            slug=concept_slug,
-            curator__slug=curator_slug
-        )
+        concept = Concept.objects\
+            .get(slug=concept_slug, organization__slug=organization_slug)
 
         if request.method == "GET":
             form = SubscriptionForm()
