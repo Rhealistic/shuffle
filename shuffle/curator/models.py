@@ -50,6 +50,8 @@ class Concept(models.Model):
     poster = models.URLField(max_length=500, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True, blank=True)
 
+    is_active = models.BooleanField(default=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 

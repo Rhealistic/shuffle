@@ -1,3 +1,4 @@
+from django.db.models import Q
 from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
@@ -9,30 +10,58 @@ from rest_framework import status as drf_status
 from ..artist.models import Opportunity
 from . import utils
 from .models import Concept, Shuffle, Organization
-from .serializers import ShuffleInputSerializer, ShuffleSerializer, OrganizationSerializer
+from .serializers import ShuffleInputSerializer, ShuffleSerializer, OrganizationSerializer, ConceptSerializer
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_organizations(_, organization_slug=None):
-    orgs = Organization.objects.filter(is_active=True)
+def get_concepts(_, concept_id=None):
+    concepts = Concept.objects.filter(is_active=True)
     
-    if organization_slug:
+    if concept_id:
         try:
+            concept = concepts.get(concept_id=concept_id)
+
             return Response(
-                data=OrganizationSerializer(instance=orgs.get()).data, 
+                data=ConceptSerializer(instance=concept).data, 
                 status=drf_status.HTTP_200_OK
             )
-        except Organization.DoesNotExist:
-            return Response(data={"error": "Organization not found"}, status=drf_status.HTTP_404_NOT_FOUND)
+        except Concept.DoesNotExist:
+            return Response(data={"error": "Concept NOT Found"}, status=drf_status.HTTP_404_NOT_FOUND)
     
     return Response(
-        data=OrganizationSerializer(orgs, many=True).data, 
+        data=ConceptSerializer(concepts, many=True).data, 
         status=drf_status.HTTP_200_OK
     )
 
 
-@api_view(['POST', 'GET'])
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def get_organizations(_, organization_slug=None, organization_id=None):
+    organizations = Organization.objects.filter(is_active=True)
+    
+    if organization_slug or organization_id:
+        try:
+            organization = organizations\
+                .filter(
+                    Q(organization_id=organization_id) | 
+                    Q(organization_slug=organization_slug))\
+                .get()
+
+            return Response(
+                data=OrganizationSerializer(instance=organization).data, 
+                status=drf_status.HTTP_200_OK
+            )
+        except Organization.DoesNotExist:
+            return Response(data={"error": "Organization NOT Found"}, status=drf_status.HTTP_404_NOT_FOUND)
+    
+    return Response(
+        data=OrganizationSerializer(organizations, many=True).data, 
+        status=drf_status.HTTP_200_OK
+    )
+
+
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def do_shuffle(request: Request):
     data = request.data
@@ -68,7 +97,7 @@ def do_shuffle(request: Request):
         )
 
 
-@api_view(['POST', 'GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def do_reshuffle(request: Request, shuffle_id=None):
     if shuffle_id:
@@ -103,17 +132,24 @@ def do_reshuffle(request: Request, shuffle_id=None):
 @api_view(['GET', 'PUT'])
 @permission_classes([AllowAny])
 def get_or_update_shuffle(request: Request, shuffle_id=None):
-    if shuffle_id:
-        try:
-            data = request.data
-            shuffle = Shuffle.objects.get(shuffle_id=shuffle_id)
+    shuffle: Shuffle = None
 
-            serializer = ShuffleInputSerializer(instance=shuffle, data=data)
+    try:
+        shuffle = Shuffle.objects.get(shuffle_id=shuffle_id)
+    except Shuffle.DoesNotExist:
+        return Response(
+            data={'error': 'Shuffle not found'}, 
+            status=drf_status.HTTP_404_NOT_FOUND
+        )
+
+    if request.method == "PUT":
+        serializer = ShuffleInputSerializer(instance=shuffle, data=data)
+        data = request.data
+
+        if shuffle_id:
             if serializer.is_valid():
-                serializer.save()
-
                 return Response(
-                    data=ShuffleSerializer(instance=serializer.instance).data, 
+                    data=ShuffleSerializer(instance=serializer.save()).data, 
                     status=drf_status.HTTP_200_OK
                 )
             else:
@@ -122,14 +158,15 @@ def get_or_update_shuffle(request: Request, shuffle_id=None):
                     status=drf_status.HTTP_400_BAD_REQUEST
                 )
 
-        except Shuffle.DoesNotExist:
+        else:
             return Response(
-                data={'error': 'Shuffle not found'}, 
-                status=drf_status.HTTP_404_NOT_FOUND
+                data={'error': 'Error updating Shuffle'},
+                status=drf_status.HTTP_400_BAD_REQUEST
             )
     else:
         return Response(
-            data={'error': 'Error updating Shuffle'},
-            status=drf_status.HTTP_400_BAD_REQUEST
+            data=ShuffleSerializer(instance=shuffle).data, 
+            status=drf_status.HTTP_200_OK
         )
-    
+
+        
