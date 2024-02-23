@@ -78,7 +78,6 @@ def do_shuffle(request: Request):
         concept = Concept.objects.get(concept_id=data.get('concept_id'))
             
         shuffle = Shuffle.objects.create(
-            type=type,
             concept=concept, 
             start_date=timezone.now(),
             previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)

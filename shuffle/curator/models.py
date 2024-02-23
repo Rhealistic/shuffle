@@ -63,14 +63,6 @@ class Shuffle(models.Model):
     shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     concept = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
-    NORMAL = 0
-    RESHUFFLE = 1
-    TYPE = (
-        (NORMAL, "Normal"),
-        (RESHUFFLE, "Reshuffle"),
-    )
-    type = models.PositiveSmallIntegerField(choices=TYPE, null=True, default=0)
-
     start_date = models.DateTimeField(null=True)
     closed_at   = models.DateTimeField(null=True)
 
