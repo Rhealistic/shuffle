@@ -9,7 +9,7 @@ from .models import Shuffle
 def do_shuffle(shuffle):
     artist: Artist = None
     artists = Artist.objects.filter(is_active=True)
-    artist: Artist = shuffle(artists)
+    artist: Artist = find_performer(artists)
 
     if artist:
         try:
@@ -74,7 +74,7 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
 
     return artist
 
-def shuffle(artists):
+def find_performer(artists):
     potentials = artists.filter(opportunity__status=Opportunity.POTENTIAL)
     next_cycle = artists.filter(opportunity__status=Opportunity.NEXT_CYCLE)
     performed  = artists.filter(opportunity__status=Opportunity.PERFORMED)
