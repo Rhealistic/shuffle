@@ -75,9 +75,9 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
     return artist
 
 def find_performer(artists):
-    potentials = artists.filter(opportunity__status=Opportunity.POTENTIAL)
-    next_cycle = artists.filter(opportunity__status=Opportunity.NEXT_CYCLE)
-    performed  = artists.filter(opportunity__status=Opportunity.PERFORMED)
+    potentials = artists.filter(subscriptions__opportunity__status=Opportunity.POTENTIAL)
+    next_cycle = artists.filter(subscriptions__opportunity__status=Opportunity.NEXT_CYCLE)
+    performed  = artists.filter(subscriptions__opportunity__status=Opportunity.PERFORMED)
 
     if potentials.count() > 0:
         return potentials.order_by(Random()).first()
