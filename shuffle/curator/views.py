@@ -7,6 +7,8 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
 
+from shuffle.artist.serializers import ArtistSerializer
+
 from ..artist.models import Opportunity
 from . import utils
 from .models import Concept, Shuffle, Organization
@@ -82,12 +84,17 @@ def do_shuffle(request: Request):
             start_date=timezone.now(),
             previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
 
-        utils.do_shuffle(shuffle)
-
-        return Response(
-            data=ShuffleSerializer(instance=shuffle).data, 
-            status=drf_status.HTTP_200_OK
-        )
+        artist = utils.do_shuffle(shuffle)
+        if artist:
+            return Response(
+                data=ArtistSerializer(instance=artist).data, 
+                status=drf_status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                data={'error': 'No artist found for shuffle'}, 
+                status=drf_status.HTTP_404_NOT_FOUND
+            )
     else:
         return Response(
             data={'error': 'Error running Shuffle'},
@@ -109,15 +116,20 @@ def do_reshuffle(request: Request, shuffle_id=None):
             else:
                 invite_status = None
                 
-            utils.do_reshuffle(shuffle, invite_status=invite_status)
-
-            return Response(
-                data={'error': 'Shuffle not found'},
-                status=drf_status.HTTP_404_NOT_FOUND
-            )
+            artist = utils.do_reshuffle(shuffle, invite_status=invite_status)
+            if artist:
+                return Response(
+                    data=ArtistSerializer(instance=artist).data, 
+                    status=drf_status.HTTP_404_NOT_FOUND
+                )
+            else:
+                return Response(
+                    data={'error': 'No artist found for shuffle'}, 
+                    status=drf_status.HTTP_404_NOT_FOUND
+                )
         except Shuffle.DoesNotExist:
             return Response(
-                data=ShuffleSerializer(instance=shuffle).data, 
+                data={'error': 'Shuffle not found'},
                 status=drf_status.HTTP_404_NOT_FOUND
             )
     else:
