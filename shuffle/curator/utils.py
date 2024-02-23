@@ -14,9 +14,9 @@ def do_shuffle(shuffle):
     if artist:
         try:
             opportunity = Opportunity.objects\
-                .filter(artist=artist)\
+                .filter(subscriber__artist=artist)\
+                .filter(subscriber__concept=shuffle.concept)\
                 .filter(status=Opportunity.POTENTIAL)\
-                .filter(concept=shuffle.concept)\
                 .first()
             
             if opportunity:
@@ -53,17 +53,17 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
             previous.artist.save()
         
         artists = Artist.objects.filter(is_active=True)
-        chosen: Artist = shuffle(artists)
+        chosen: Artist = find_performer(artists)
 
         if chosen:
             opportunity = Opportunity.objects\
-                .filter(concept=shuffle.concept)\
-                .filter(artist=chosen)\
+                .filter(subscriber__concept=shuffle.concept)\
+                .filter(subscriber__artist=chosen)\
                 .filter(status=Opportunity.POTENTIAL)\
                 .first()
         
             if opportunity:
-                opportunity.status = Opportunity.WAITING_APPROVAL
+                opportunity.invite_status = Opportunity.WAITING_ACCEPTANCE
                 opportunity.save()
 
             shuffle.chosen = chosen
