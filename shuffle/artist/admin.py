@@ -10,13 +10,12 @@ class ArtistAdmin(admin.ModelAdmin):
         "email",
         "phone",
         "instagram",
-        "performance_count",
     ]
 
 @admin.register(Opportunity)
 class OpportunityAdmin(admin.ModelAdmin):
     list_display = [
-        "artist",
-        "concept",
-        "status"
+        "subscriber",
+        "status",
+        "invite_status"
     ]

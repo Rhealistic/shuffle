@@ -5,6 +5,7 @@ from .models import Curator, Concept, Shuffle, Organization
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
     list_display = [
+        "organization_id",
         "name",
         "slug",
         "email",
@@ -17,6 +18,7 @@ class OrganizationAdmin(admin.ModelAdmin):
 @admin.register(Curator)
 class CuratorAdmin(admin.ModelAdmin):
     list_display = [
+        "curator_id",
         "name",
         "email",
         "phone",
@@ -26,6 +28,7 @@ class CuratorAdmin(admin.ModelAdmin):
 @admin.register(Concept)
 class ConceptAdmin(admin.ModelAdmin):
     list_display = [
+        "concept_id",
         "title",
         "curator",
         "description",
@@ -37,9 +40,8 @@ class ConceptAdmin(admin.ModelAdmin):
 @admin.register(Shuffle)
 class ShuffleAdmin(admin.ModelAdmin):
     list_display = [
+        "shuffle_id",
         "concept",
-        "last_shuffle",
-        "next_shuffle",
         "status",
         "created_at"
     ]

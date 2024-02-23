@@ -47,9 +47,6 @@ class ArtistForm(forms.ModelForm):
             'soundcloud',
             'instagram',
             'country',
-            'performance_count',
-            'next_performance',
-            'last_performance'
         ]
 
     def __init__(self, *args, **kwargs):
@@ -62,7 +59,6 @@ class ArtistForm(forms.ModelForm):
         self.fields['photo'].required = False
         self.fields['instagram'].required = False
         self.fields['country'].required = False
-        self.fields['performance_count'].required = False
 
 class SearchImageForm(forms.Form):
     query = forms.CharField(max_length=150, required=True)

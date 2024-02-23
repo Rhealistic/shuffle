@@ -9,25 +9,40 @@ class OrganizationSerializer(serializers.ModelSerializer):
         exclude = ['id']
 
 class CuratorSerializer(serializers.ModelSerializer):
+    organization = OrganizationSerializer()
+    
     class Meta:
         model = Curator
         exclude = ['id']
 
 
 class ConceptSerializer(serializers.ModelSerializer):
+    curator = CuratorSerializer()
+
     class Meta:
         model = Concept
         exclude = ['id']
 
 
 class ShuffleSerializer(serializers.ModelSerializer):
-    concept_slug = serializers.StringRelatedField(source='concept.slug')
+    concept = ConceptSerializer()
 
     class Meta:
         model = Shuffle
         exclude = ['id']
 
+    def validate(self, attrs):
+        if 'status' not in attrs:
+            raise serializers.ValidationError("`status` is required")
+        return attrs
 
-class ShuffleInputSerializer(serializers.Serializer):
-    concept_slug = serializers.SlugField()
-    concept_slug = serializers.SlugField()
+
+class ShuffleInputSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Shuffle
+        fields = ['status']
+
+    def validate(self, attrs):
+        if 'status' not in attrs:
+            raise serializers.ValidationError("`status` is required")
+        return attrs

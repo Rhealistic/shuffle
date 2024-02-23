@@ -19,14 +19,6 @@ class Artist(models.Model):
     mailerlite_subscriber_id = models.CharField(max_length=30, null=True, blank=True)
     mailerlite_subscriber_group_id = models.CharField(max_length=30, null=True, blank=True)
 
-    selection_count = models.PositiveSmallIntegerField(default=0)
-    acceptance_count = models.PositiveSmallIntegerField(default=0)
-    expired_count = models.PositiveSmallIntegerField(default=0)
-    skip_count = models.PositiveSmallIntegerField(default=0)
-    performance_count = models.PositiveSmallIntegerField(default=0)
-
-    next_performance = models.DateTimeField(null=True, blank=True)
-    last_performance = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(null=True, default=True)
     
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
@@ -50,36 +42,86 @@ class Artist(models.Model):
             artist_id=self.artist_id,
             mailerlite_subscriber_id=self.mailerlite_subscriber_id,
             mailerlite_subscriber_group_id=self.mailerlite_subscriber_group_id,
+            created_at=self.created_at,
+            updated_at=self.updated_at
+        )
+
+
+class Subscriber(models.Model):
+    subscriber_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+
+    concept = models.ForeignKey('curator.Concept', models.CASCADE, related_name='concepts')
+    artist  = models.ForeignKey('Artist', models.CASCADE, related_name='subscriptions')
+
+    selection_count = models.PositiveSmallIntegerField(default=0)
+    acceptance_count = models.PositiveSmallIntegerField(default=0)
+    expired_count = models.PositiveSmallIntegerField(default=0)
+    skip_count = models.PositiveSmallIntegerField(default=0)
+    performance_count = models.PositiveSmallIntegerField(default=0)
+
+    next_performance = models.DateTimeField(null=True, blank=True)
+    last_performance = models.DateTimeField(null=True, blank=True)
+
+    is_subscribed = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    def __str__(self):
+        return f'{self.concept}: {self.artist}'
+    
+    def dict(self):
+        return dict(
+            subscriber_id=self.subscriber_id,
+            concept_id=self.concept.concept_id,
+            artist_id=self.artist.artist_id,
+            selection_count=self.selection_count,
+            acceptance_count=self.acceptance_count,
+            expired_count=self.expired_count,
+            skip_count=self.skip_count,
             performance_count=self.performance_count,
             next_performance=self.next_performance,
             last_performance=self.last_performance,
+            is_subscribed=self.is_subscribed,
             created_at=self.created_at,
             updated_at=self.updated_at
         )
 
 
 class Opportunity(models.Model):
-    concept = models.ForeignKey('curator.Concept', models.SET_NULL, null=True)
-    artist  = models.ForeignKey('Artist', models.SET_NULL, related_name='artists', null=True)
+    opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+
+    subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True)
 
     POTENTIAL = 0
-    WAITING_APPROVAL = 1
-    NEXT_PERFORMING = 2
-    PERFORMED = 3
-    NEXT_CYCLE = 4
-    SKIP = 5
-    EXPIRED = 6
+    NEXT_PERFORMING = 1
+    PERFORMED  = 2
+    NEXT_CYCLE = 3
     OPPORTUNITY_STATUSES = [
         (POTENTIAL, 'Potential'),
-        (WAITING_APPROVAL, 'Waiting Approval'),
         (NEXT_PERFORMING, 'Next Performing'),
         (PERFORMED, 'Performed'),
+        (NEXT_CYCLE, 'Next Cycle'),
+    ]
+    status = models.PositiveSmallIntegerField(
+        choices=OPPORTUNITY_STATUSES, default=POTENTIAL, null=True
+    )
+    
+    NEW = 0
+    SENT = 1
+    WAITING_ACCEPTANCE = 2
+    ACCEPTED = 3
+    SKIP = 4
+    EXPIRED = 5
+    INVITE_STATUSES = [
+        (NEW, 'New'),
+        (SENT, 'Sent'),
+        (WAITING_ACCEPTANCE, 'Awaiting Acceptance'),
+        (ACCEPTED, 'Accepted'),
         (SKIP, 'Skip'),
         (EXPIRED, 'Expired')
     ]
-    status = models.PositiveSmallIntegerField(
-        choices=OPPORTUNITY_STATUSES, default=WAITING_APPROVAL, null=True
-    )
+    invite_status = models.PositiveSmallIntegerField(choices=INVITE_STATUSES, null=True, default=NEW)
 
     skipped_at = models.DateTimeField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)
@@ -89,4 +131,17 @@ class Opportunity(models.Model):
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
     def __str__(self):
-        return f'{self.concept}: {self.artist}'
+        return str(self.subscriber)
+
+    def dict(self):
+        return dict(
+            opportunity_id=self.opportunity_id,
+            subscriber_id=self.subscriber.subscriber_id,
+            status=self.status,
+            invite_status=self.invite_status,
+            skipped_at=self.skipped_at,
+            accepted_at=self.accepted_at,
+            expired_at=self.expired_at,
+            created_at=self.created_at,
+            updated_at=self.updated_at
+        )
