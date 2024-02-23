@@ -1,8 +1,9 @@
+from django.db.models import F
 from django.db.models.functions import Random
 
 from django.utils import timezone
 
-from ..artist.models import Artist, Opportunity
+from ..artist.models import Artist, Opportunity, Subscriber
 from .models import Shuffle
 
 
@@ -29,8 +30,10 @@ def do_shuffle(shuffle):
                 artist=artist,
                 invite_status=Opportunity.WAITING_ACCEPTANCE)
 
-        artist.selection_count += 1
-        artist.save()
+        Subscriber.objects\
+            .filter(artist=artist)\
+            .filter(is_subscribed=True)\
+            .update(selection_count=F('selection_count') + 1)
 
         shuffle.chosen = artist
         shuffle.save()
@@ -53,12 +56,12 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
             previous.artist.save()
         
         artists = Artist.objects.filter(is_active=True)
-        chosen: Artist = find_performer(artists)
+        artist: Artist = find_performer(artists)
 
-        if chosen:
+        if artist:
             opportunity = Opportunity.objects\
                 .filter(subscriber__concept=shuffle.concept)\
-                .filter(subscriber__artist=chosen)\
+                .filter(subscriber__artist=artist)\
                 .filter(status=Opportunity.POTENTIAL)\
                 .first()
         
@@ -66,7 +69,12 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
                 opportunity.invite_status = Opportunity.WAITING_ACCEPTANCE
                 opportunity.save()
 
-            shuffle.chosen = chosen
+            Subscriber.objects\
+                .filter(artist=artist)\
+                .filter(is_subscribed=True)\
+                .update(selection_count=F('selection_count') + 1)
+
+            shuffle.chosen = artist
             shuffle.retries += 1
             shuffle.save()
     except Opportunity.DoesNotExist:
