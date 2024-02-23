@@ -66,17 +66,16 @@ def get_organizations(_, organization_slug=None, organization_id=None):
 def do_shuffle(request: Request):
     data = request.data
 
-    if data.get('organization_slug') and data.get('concept_slug'):
+    if data.get('concept_id'):
         try:
             last_shuffle = Shuffle.objects\
-                .filter(concept__slug=data.get('concept_slug'))\
-                .filter(concept__curator__organization__slug=data.get('organization_slug'))\
+                .filter(concept__concept_id=data.get('concept_id'))\
                 .filter(closed_at__isnull=True)\
                 .latest('created_at')
         except Shuffle.DoesNotExist:
             last_shuffle = None
         
-        concept = Concept.objects.get(slug=data.get('concept_slug'))
+        concept = Concept.objects.get(concept_id=data.get('concept_id'))
             
         shuffle = Shuffle.objects.create(
             type=type,
