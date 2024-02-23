@@ -16,13 +16,6 @@
       "artist_id": "7a6fc679-28c2-49e4-837b-a80d2d7ce2f3",
       "mailerlite_subscriber_id": null,
       "mailerlite_subscriber_group_id": null,
-      "selection_count": 0,
-      "acceptance_count": 0,
-      "expired_count": 0,
-      "skip_count": 0,
-      "performance_count": 0,
-      "next_performance": null,
-      "last_performance": null,
       "is_active": true,
       "created_at": "2024-02-01T15:37:21.996Z",
       "updated_at": "2024-02-01T15:37:21.996Z"
