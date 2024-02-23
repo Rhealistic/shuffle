@@ -91,6 +91,8 @@ class Shuffle(models.Model):
     retries = models.PositiveSmallIntegerField(default=0)
     chosen = models.ForeignKey("artist.Artist", models.SET_NULL, null=True)
 
+    previous_shuffle_id = models.UUIDField(max_length=30, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 

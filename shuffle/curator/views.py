@@ -68,12 +68,12 @@ def do_shuffle(request: Request):
 
     if data.get('concept_id'):
         try:
-            last_shuffle = Shuffle.objects\
+            previous_shuffle = Shuffle.objects\
                 .filter(concept__concept_id=data.get('concept_id'))\
                 .filter(closed_at__isnull=True)\
                 .latest('created_at')
         except Shuffle.DoesNotExist:
-            last_shuffle = None
+            previous_shuffle = None
         
         concept = Concept.objects.get(concept_id=data.get('concept_id'))
             
@@ -81,7 +81,7 @@ def do_shuffle(request: Request):
             type=type,
             concept=concept, 
             start_date=timezone.now(),
-            last_shuffle=last_shuffle.created_at if last_shuffle else last_shuffle)
+            previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
 
         utils.do_shuffle(shuffle)
 
