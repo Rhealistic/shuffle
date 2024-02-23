@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Artist, Opportunity
+from .models import Artist, Opportunity, Subscriber
 
 @admin.register(Artist)
 class ArtistAdmin(admin.ModelAdmin):
@@ -18,4 +18,14 @@ class OpportunityAdmin(admin.ModelAdmin):
         "subscriber",
         "status",
         "invite_status"
+    ]
+
+
+@admin.register(Subscriber)
+class SubscriberAdmin(admin.ModelAdmin):
+    list_display = [
+        "subscriber_id",
+        "concept",
+        "artist",
+        "is_subscribed"
     ]

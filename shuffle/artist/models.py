@@ -67,8 +67,12 @@ class Subscriber(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
+    class Meta:
+        verbose_name_plural = "Subscribers"
+
     def __str__(self):
         return f'{self.concept}: {self.artist}'
+    
     
     def dict(self):
         return dict(
@@ -129,6 +133,9 @@ class Opportunity(models.Model):
     
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
+
+    class Meta:
+        verbose_name_plural = "Opportunities"
 
     def __str__(self):
         return str(self.subscriber)

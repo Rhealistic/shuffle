@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -78,23 +79,25 @@ def do_shuffle(request: Request):
             previous_shuffle = None
         
         concept = Concept.objects.get(concept_id=data.get('concept_id'))
-            
-        shuffle = Shuffle.objects.create(
-            concept=concept, 
-            start_date=timezone.now(),
-            previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
+        
+        with transaction.atomic():
+            shuffle = Shuffle.objects.create(
+                concept=concept, 
+                start_date=timezone.now(),
+                previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
 
-        artist = utils.do_shuffle(shuffle)
-        if artist:
-            return Response(
-                data=ArtistSerializer(instance=artist).data, 
-                status=drf_status.HTTP_200_OK
-            )
-        else:
-            return Response(
-                data={'error': 'No artist found for shuffle'}, 
-                status=drf_status.HTTP_404_NOT_FOUND
-            )
+            artist = utils.do_shuffle(shuffle)
+
+            if artist:
+                return Response(
+                    data=ArtistSerializer(instance=artist).data, 
+                    status=drf_status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    data={'error': 'No artist found for shuffle'}, 
+                    status=drf_status.HTTP_404_NOT_FOUND
+                )
     else:
         return Response(
             data={'error': 'Error running Shuffle'},
@@ -116,17 +119,18 @@ def do_reshuffle(request: Request, shuffle_id=None):
             else:
                 invite_status = None
                 
-            artist = utils.do_reshuffle(shuffle, invite_status=invite_status)
-            if artist:
-                return Response(
-                    data=ArtistSerializer(instance=artist).data, 
-                    status=drf_status.HTTP_404_NOT_FOUND
-                )
-            else:
-                return Response(
-                    data={'error': 'No artist found for shuffle'}, 
-                    status=drf_status.HTTP_404_NOT_FOUND
-                )
+            with transaction.atomic():
+                artist = utils.do_reshuffle(shuffle, invite_status=invite_status)
+                if artist:
+                    return Response(
+                        data=ArtistSerializer(instance=artist).data, 
+                        status=drf_status.HTTP_404_NOT_FOUND
+                    )
+                else:
+                    return Response(
+                        data={'error': 'No artist found for shuffle'}, 
+                        status=drf_status.HTTP_404_NOT_FOUND
+                    )
         except Shuffle.DoesNotExist:
             return Response(
                 data={'error': 'Shuffle not found'},
