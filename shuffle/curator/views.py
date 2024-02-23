@@ -78,9 +78,8 @@ def do_shuffle(request: Request):
         except Shuffle.DoesNotExist:
             previous_shuffle = None
         
-        concept = Concept.objects.get(concept_id=data.get('concept_id'))
-        
         with transaction.atomic():
+            concept = Concept.objects.get(concept_id=data.get('concept_id'))
             shuffle = Shuffle.objects.create(
                 concept=concept, 
                 start_date=timezone.now(),
@@ -94,6 +93,10 @@ def do_shuffle(request: Request):
                     status=drf_status.HTTP_200_OK
                 )
             else:
+                shuffle.status = Shuffle.FAILED
+                shuffle.closed_at = timezone.now()
+                shuffle.save()
+            
                 return Response(
                     data={'error': 'No artist found for shuffle'}, 
                     status=drf_status.HTTP_404_NOT_FOUND
@@ -127,6 +130,9 @@ def do_reshuffle(request: Request, shuffle_id=None):
                         status=drf_status.HTTP_404_NOT_FOUND
                     )
                 else:
+                    shuffle.status = Shuffle.FAILED
+                    shuffle.closed_at = timezone.now()
+                    shuffle.save()
                     return Response(
                         data={'error': 'No artist found for shuffle'}, 
                         status=drf_status.HTTP_404_NOT_FOUND

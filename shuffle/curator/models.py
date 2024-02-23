@@ -72,13 +72,15 @@ class Shuffle(models.Model):
     ACCEPTED = 3
     RESHUFFLE = 4
     COMPLETE = 5
+    FAILED = 6
     STATUS = (
         (STARTED, "Started"),
         (IN_PROGRESS, "In Progress"),
         (INVITE_SENT, "Invite Sent"),
         (ACCEPTED, "Accepted"),
         (RESHUFFLE, "Reshuffle"),
-        (COMPLETE, "Complete"))
+        (COMPLETE, "Complete"),
+        (FAILED, "Failed"))
     status = models.PositiveSmallIntegerField(choices=STATUS, default=0)
     retries = models.PositiveSmallIntegerField(default=0)
     chosen = models.ForeignKey("artist.Artist", models.SET_NULL, null=True)
