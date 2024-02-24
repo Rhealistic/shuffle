@@ -11,9 +11,12 @@ from rest_framework import status as drf_status
 from shuffle.artist.serializers import ArtistSerializer
 
 from ..artist.models import Opportunity
+
 from . import utils
 from .models import Concept, Shuffle, Organization
-from .serializers import ShuffleInputSerializer, ShuffleSerializer, OrganizationSerializer, ConceptSerializer
+from .serializers import \
+    ShuffleInputSerializer, ShuffleSerializer, \
+    OrganizationSerializer, ConceptSerializer
 
 
 @api_view(['GET'])
@@ -30,7 +33,9 @@ def get_concepts(_, concept_id=None):
                 status=drf_status.HTTP_200_OK
             )
         except Concept.DoesNotExist:
-            return Response(data={"error": "Concept NOT Found"}, status=drf_status.HTTP_404_NOT_FOUND)
+            return Response(
+                data={"error": "Concept NOT Found"}, 
+                status=drf_status.HTTP_404_NOT_FOUND)
     
     return Response(
         data=ConceptSerializer(concepts, many=True).data, 
@@ -93,7 +98,7 @@ def do_shuffle(request: Request):
                     status=drf_status.HTTP_200_OK
                 )
             else:
-                shuffle.status = Shuffle.FAILED
+                shuffle.status = Shuffle.ShuffleStatus.FAILED
                 shuffle.closed_at = timezone.now()
                 shuffle.save()
             
@@ -116,9 +121,9 @@ def do_reshuffle(request: Request, shuffle_id=None):
             shuffle = Shuffle.objects.get(id=shuffle_id)
             
             if request.data.get('status') == "expired":
-                invite_status = Opportunity.EXPIRED
+                invite_status = Opportunity.OpportunityStatus.EXPIRED
             elif request.data.get('status') == "skip":
-                invite_status = Opportunity.SKIP
+                invite_status = Opportunity.OpportunityStatus.SKIP
             else:
                 invite_status = None
                 
@@ -130,7 +135,7 @@ def do_reshuffle(request: Request, shuffle_id=None):
                         status=drf_status.HTTP_404_NOT_FOUND
                     )
                 else:
-                    shuffle.status = Shuffle.FAILED
+                    shuffle.status = Shuffle.ShuffleStatus.FAILED
                     shuffle.closed_at = timezone.now()
                     shuffle.save()
                     return Response(

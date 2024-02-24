@@ -34,7 +34,7 @@ def discover_opportunities():
                 .create(
                     concept=subscriber.concept,
                     artist=subscriber.artist,
-                    status=Opportunity.POTENTIAL
+                    status=Opportunity.OpportunityStatus.POTENTIAL
                 )
 
 @api_view(["GET", "POST"])

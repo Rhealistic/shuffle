@@ -17,18 +17,18 @@ def do_shuffle(shuffle):
             opportunity = Opportunity.objects\
                 .filter(subscriber__artist=artist)\
                 .filter(subscriber__concept=shuffle.concept)\
-                .filter(status=Opportunity.POTENTIAL)\
+                .filter(status=Opportunity.OpportunityStatus.POTENTIAL)\
                 .first()
             
             if opportunity:
-                opportunity.invite_status = Opportunity.WAITING_ACCEPTANCE
+                opportunity.invite_status = Opportunity.InviteStatus.WAITING_ACCEPTANCE
                 opportunity.save()
 
         except Opportunity.DoesNotExist:
             opportunity = Opportunity.objects.create(
                 concept=shuffle.concept,
                 artist=artist,
-                invite_status=Opportunity.WAITING_ACCEPTANCE)
+                invite_status=Opportunity.InviteStatus.WAITING_ACCEPTANCE)
 
         Subscriber.objects\
             .filter(artist=artist)\
@@ -41,13 +41,14 @@ def do_shuffle(shuffle):
     return artist
 
 
-def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
+def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.InviteStatus.EXPIRED):
     artist: Artist = None
 
     try:
         previous: Opportunity = shuffle.chosen\
             .opportunities\
-            .filter(concept=shuffle.concept, invite_status=Opportunity.WAITING_ACCEPTANCE)\
+            .filter(invite_status=Opportunity.InviteStatus.WAITING_ACCEPTANCE)\
+            .filter(concept=shuffle.concept)\
             .first()
 
         if previous:
@@ -62,11 +63,11 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
             opportunity = Opportunity.objects\
                 .filter(subscriber__concept=shuffle.concept)\
                 .filter(subscriber__artist=artist)\
-                .filter(status=Opportunity.POTENTIAL)\
+                .filter(status=Opportunity.OpportunityStatus.POTENTIAL)\
                 .first()
         
             if opportunity:
-                opportunity.invite_status = Opportunity.WAITING_ACCEPTANCE
+                opportunity.invite_status = Opportunity.InviteStatus.WAITING_ACCEPTANCE
                 opportunity.save()
 
             Subscriber.objects\
@@ -83,9 +84,9 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.EXPIRED):
     return artist
 
 def find_performer(artists):
-    potentials = artists.filter(subscriptions__opportunity__status=Opportunity.POTENTIAL)
-    next_cycle = artists.filter(subscriptions__opportunity__status=Opportunity.NEXT_CYCLE)
-    performed  = artists.filter(subscriptions__opportunity__status=Opportunity.PERFORMED)
+    potentials = artists.filter(subscriptions__opportunity__status=Opportunity.OpportunityStatus.POTENTIAL)
+    next_cycle = artists.filter(subscriptions__opportunity__status=Opportunity.OpportunityStatus.NEXT_CYCLE)
+    performed  = artists.filter(subscriptions__opportunity__status=Opportunity.OpportunityStatus.PERFORMED)
 
     if potentials.count() > 0:
         return potentials.order_by(Random()).first()

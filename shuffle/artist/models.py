@@ -36,7 +36,10 @@ class Artist(models.Model):
             bio=self.bio,
             email=self.email,
             phone=self.phone,
+            epk=self.epk,
             photo=self.photo,
+            mixcloud=self.mixcloud,
+            soundcloud=self.soundcloud,
             instagram=self.instagram,
             country=self.country,
             artist_id=self.artist_id,
@@ -93,39 +96,35 @@ class Subscriber(models.Model):
 
 
 class Opportunity(models.Model):
-    opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    class OpportunityStatus(models.IntegerChoices):
+        # has been identified as a potential performer
+        POTENTIAL = 0, "Potential" 
+        # has been chosen to perform in the next event of the concept
+        NEXT_PERFORMING = 1, "Next Performing" 
+        # outcome was successful; artist performed
+        PERFORMED  = 2, "Performed" 
+        # outcome was unsuccessful; opportunity expired or artist skipped.
+        NEXT_CYCLE = 3, "Next Cycle"
 
+    class InviteStatus(models.IntegerChoices):
+        PENDING = 0, 'Pending'
+        SENT = 1, 'Sent'
+        WAITING_ACCEPTANCE = 2, 'Awaiting Acceptance'
+        ACCEPTED = 3, 'Accepted'
+        SKIP = 4, 'Skip'
+        EXPIRED = 5, 'Expired'
+
+    opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True)
 
-    POTENTIAL = 0
-    NEXT_PERFORMING = 1
-    PERFORMED  = 2
-    NEXT_CYCLE = 3
-    OPPORTUNITY_STATUSES = [
-        (POTENTIAL, 'Potential'),
-        (NEXT_PERFORMING, 'Next Performing'),
-        (PERFORMED, 'Performed'),
-        (NEXT_CYCLE, 'Next Cycle'),
-    ]
     status = models.PositiveSmallIntegerField(
-        choices=OPPORTUNITY_STATUSES, default=POTENTIAL, null=True
+        choices=OpportunityStatus.choices, null=True,
+        default=OpportunityStatus.POTENTIAL
     )
-    
-    NEW = 0
-    SENT = 1
-    WAITING_ACCEPTANCE = 2
-    ACCEPTED = 3
-    SKIP = 4
-    EXPIRED = 5
-    INVITE_STATUSES = [
-        (NEW, 'New'),
-        (SENT, 'Sent'),
-        (WAITING_ACCEPTANCE, 'Awaiting Acceptance'),
-        (ACCEPTED, 'Accepted'),
-        (SKIP, 'Skip'),
-        (EXPIRED, 'Expired')
-    ]
-    invite_status = models.PositiveSmallIntegerField(choices=INVITE_STATUSES, null=True, default=NEW)
+    invite_status = models.PositiveSmallIntegerField(
+        choices=InviteStatus.choices, null=True, 
+        default=InviteStatus.PENDING
+    )
 
     skipped_at = models.DateTimeField(blank=True, null=True)
     accepted_at = models.DateTimeField(blank=True, null=True)

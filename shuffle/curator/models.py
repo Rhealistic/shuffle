@@ -60,28 +60,23 @@ class Concept(models.Model):
 
 
 class Shuffle(models.Model):
+
+    class ShuffleStatus(models.IntegerChoices):
+        STARTED = 0, "Started"
+        IN_PROGRESS = 1, "In Progress"
+        INVITE_SENT = 2, "Invite Sent"
+        ACCEPTED = 3, "Accepted"
+        RESHUFFLE = 4, "Reshuffle"
+        COMPLETE = 5, "Complete"
+        FAILED = 6, "Failed"
+    
     shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     concept = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
     start_date = models.DateTimeField(null=True)
     closed_at   = models.DateTimeField(null=True)
 
-    STARTED = 0
-    IN_PROGRESS = 1
-    INVITE_SENT = 2
-    ACCEPTED = 3
-    RESHUFFLE = 4
-    COMPLETE = 5
-    FAILED = 6
-    STATUS = (
-        (STARTED, "Started"),
-        (IN_PROGRESS, "In Progress"),
-        (INVITE_SENT, "Invite Sent"),
-        (ACCEPTED, "Accepted"),
-        (RESHUFFLE, "Reshuffle"),
-        (COMPLETE, "Complete"),
-        (FAILED, "Failed"))
-    status = models.PositiveSmallIntegerField(choices=STATUS, default=0)
+    status = models.PositiveSmallIntegerField(choices=ShuffleStatus.choices, default=ShuffleStatus.STARTED)
     retries = models.PositiveSmallIntegerField(default=0)
     chosen = models.ForeignKey("artist.Artist", models.SET_NULL, null=True)
 
