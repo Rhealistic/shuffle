@@ -1,4 +1,6 @@
 from rest_framework import serializers
+
+from shuffle.curator.serializers import ConceptSerializer
 from .models import Artist, Opportunity, Subscriber
 
 class ArtistSerializer(serializers.ModelSerializer):
@@ -8,6 +10,9 @@ class ArtistSerializer(serializers.ModelSerializer):
 
 
 class SubscriberSerializer(serializers.ModelSerializer):
+    artist = ArtistSerializer()
+    concept = ConceptSerializer()
+    
     class Meta:
         model = Subscriber
         exclude = ['id']
