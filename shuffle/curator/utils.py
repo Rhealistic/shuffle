@@ -8,7 +8,7 @@ from .models import Shuffle
 
 
 def do_shuffle(shuffle):
-    artist: Artist = None
+    opportunity: Opportunity = None
     artists = Artist.objects.filter(is_active=True)
     artist: Artist = find_performer(artists)
 
@@ -38,11 +38,11 @@ def do_shuffle(shuffle):
         shuffle.chosen = artist
         shuffle.save()
 
-    return artist
+    return opportunity
 
 
 def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.InviteStatus.EXPIRED):
-    artist: Artist = None
+    opportunity: Opportunity = None
 
     try:
         previous: Opportunity = shuffle.chosen\
@@ -81,7 +81,7 @@ def do_reshuffle(shuffle: Shuffle, artists, invite_status=Opportunity.InviteStat
     except Opportunity.DoesNotExist:
         opportunity = Opportunity
 
-    return artist
+    return opportunity
 
 def find_performer(artists):
     potentials = artists.filter(subscriptions__opportunity__status=Opportunity.OpportunityStatus.POTENTIAL)

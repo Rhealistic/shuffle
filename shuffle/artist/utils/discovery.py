@@ -17,9 +17,10 @@ def discover_opportunities(concept: Concept):
             .filter(subscriber=subscribers)\
             .filter(
                 models.Q(invite_closed_at__isnull=True) | 
-                models.Q(opportunity_closed_at__isnull=True))
+                models.Q(opportunity_closed_at__isnull=True)
+            )
         
-        if not open_opportunities.count():
+        if open_opportunities.exists():
             Opportunity\
                 .objects\
                 .create(

@@ -6,15 +6,18 @@ class ArtistSerializer(serializers.ModelSerializer):
         model = Artist
         exclude = ['id']
 
-class OpportunitySerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Opportunity
-        exclude = ['id']
-
 
 class SubscriberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscriber
+        exclude = ['id']
+
+
+class OpportunitySerializer(serializers.ModelSerializer):
+    subscriber = SubscriberSerializer()
+
+    class Meta:
+        model = Opportunity
         exclude = ['id']
 
 
@@ -45,3 +48,4 @@ class SubscriberUpdateSerializer(serializers.ModelSerializer):
             'last_performance',
             'is_subscribed',
         ]
+

@@ -8,7 +8,7 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
 
-from shuffle.artist.serializers import ArtistSerializer
+from shuffle.artist.serializers import OpportunitySerializer
 
 from ..artist.models import Opportunity
 
@@ -90,11 +90,11 @@ def do_shuffle(request: Request):
                 start_date=timezone.now(),
                 previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
 
-            artist = utils.do_shuffle(shuffle)
+            opportunity = utils.do_shuffle(shuffle)
 
-            if artist:
+            if opportunity:
                 return Response(
-                    data=ArtistSerializer(instance=artist).data, 
+                    data=OpportunitySerializer(instance=opportunity).data, 
                     status=drf_status.HTTP_200_OK
                 )
             else:
@@ -128,16 +128,17 @@ def do_reshuffle(request: Request, shuffle_id=None):
                 invite_status = None
                 
             with transaction.atomic():
-                artist = utils.do_reshuffle(shuffle, invite_status=invite_status)
-                if artist:
+                opportunity = utils.do_reshuffle(shuffle, invite_status=invite_status)
+                if opportunity:
                     return Response(
-                        data=ArtistSerializer(instance=artist).data, 
+                        data=OpportunitySerializer(instance=opportunity).data, 
                         status=drf_status.HTTP_404_NOT_FOUND
                     )
                 else:
                     shuffle.status = Shuffle.ShuffleStatus.FAILED
                     shuffle.closed_at = timezone.now()
                     shuffle.save()
+
                     return Response(
                         data={'error': 'No artist found for shuffle'}, 
                         status=drf_status.HTTP_404_NOT_FOUND
