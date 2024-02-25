@@ -53,7 +53,7 @@ class Artist(models.Model):
 class Subscriber(models.Model):
     subscriber_id = models.UUIDField(max_length=30, default = uuid.uuid4)
 
-    concept = models.ForeignKey('curator.Concept', models.CASCADE, related_name='concepts')
+    concept = models.ForeignKey('curator.Concept', models.CASCADE, related_name='concept_subscriptions')
     artist  = models.ForeignKey('Artist', models.CASCADE, related_name='subscriptions')
 
     selection_count = models.PositiveSmallIntegerField(default=0)
@@ -114,22 +114,35 @@ class Opportunity(models.Model):
         SKIP = 4, 'Skip'
         EXPIRED = 5, 'Expired'
 
+    class OutcomeStatus(models.IntegerChoices):
+        PENDING = 0, 'Pending'
+        SUCCESSFUL = 1, 'Sent'
+        CANCELLED = 2, 'Cancelled'
+        POSTPONED = 3, 'Postponed'
+
     opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    
     subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True)
+    event = models.ForeignKey('calendar.Event', models.SET_NULL, null=True)
 
     status = models.PositiveSmallIntegerField(
         choices=OpportunityStatus.choices, null=True,
         default=OpportunityStatus.POTENTIAL
     )
+    
     invite_status = models.PositiveSmallIntegerField(
         choices=InviteStatus.choices, null=True, 
         default=InviteStatus.PENDING
     )
-
-    skipped_at = models.DateTimeField(blank=True, null=True)
-    accepted_at = models.DateTimeField(blank=True, null=True)
-    expired_at = models.DateTimeField(blank=True, null=True)
+    invite_closed_at = models.DateTimeField(blank=True, null=True)
     
+    outcome_status = models.PositiveSmallIntegerField(
+        choices=OutcomeStatus.choices, null=True, 
+        default=OutcomeStatus.PENDING
+    )
+    # only closed on outcome
+    opportunity_closed_at = models.DateTimeField(blank=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
@@ -151,3 +164,5 @@ class Opportunity(models.Model):
             created_at=self.created_at,
             updated_at=self.updated_at
         )
+    
+    

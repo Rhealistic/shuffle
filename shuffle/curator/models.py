@@ -1,5 +1,6 @@
 import random
 import uuid
+
 from django.db import models
 
 
@@ -7,7 +8,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, null=True)
 
-    organization_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    organization_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
 
     email = models.EmailField()
     phone = models.CharField(max_length=30)
@@ -29,7 +30,7 @@ class Curator(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=30)
 
-    curator_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    curator_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
     organization = models.ForeignKey('Organization', models.SET_NULL, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
@@ -41,13 +42,12 @@ class Curator(models.Model):
 
 class Concept(models.Model):
     title = models.CharField(max_length=150)
-    curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
     description = models.CharField(max_length=500)
 
+    curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
     concept_id = models.UUIDField(max_length=30, default = uuid.uuid4)
 
     slug = models.SlugField(max_length=75, null=True)
-    poster = models.URLField(max_length=500, null=True, blank=True)
     date = models.DateTimeField(auto_now_add=True, blank=True)
 
     is_active = models.BooleanField(default=True, null=True)
@@ -70,7 +70,7 @@ class Shuffle(models.Model):
         COMPLETE = 5, "Complete"
         FAILED = 6, "Failed"
     
-    shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
     concept = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
     start_date = models.DateTimeField(null=True)
@@ -87,4 +87,3 @@ class Shuffle(models.Model):
 
     def __str__(self):
         return f'{str(self.concept)} Shuffle'
-        

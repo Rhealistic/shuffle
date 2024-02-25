@@ -1,14 +1,12 @@
 from django.contrib import admin
 
-from .models import Event
+from .models import Venue
 
-@admin.register(Event)
-class OrganizationAdmin(admin.ModelAdmin):
+@admin.register(Venue)
+class VenueAdmin(admin.ModelAdmin):
     list_display = [
-        'event_id',
-        'title',
-        'description',
-        'event_date',
-        'concept',
-        'venue',
+        'venue_id',
+        'name',
+        'slug',
+        'point',
     ]

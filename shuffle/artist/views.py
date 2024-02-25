@@ -2,6 +2,7 @@ from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.db import transaction
+from django.utils import timezone
 from django.shortcuts import render, redirect
 
 from rest_framework.decorators import api_view, permission_classes
@@ -15,31 +16,23 @@ from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 
 from .models import Artist, Opportunity, Subscriber
 from .forms import SubscriptionForm, ArtistForm
-from .utils import notify_subscriber, update_mailerlite
+from .utils import notify_subscriber, update_mailerlite, discover_opportunities
 from .serializers import OpportunitySerializer, OpportunityUpdateSerializer, SubscriberSerializer, SubscriberUpdateSerializer
 
-def discover_opportunities():
-    subscribers = Subscriber.objects\
-        .filter(artist__is_active=True)\
-        .filter(concept__curator__organization__is_active=True)\
-        .filter(is_subscribed=True)\
-        .order_by('-created_at')
-
-    for subscriber in subscribers:
-        current_opportunities = Opportunity.objects.filter(subscriber=subscriber)
-
-        if current_opportunities.count() > 0:
-            Opportunity\
-                .objects\
-                .create(
-                    concept=subscriber.concept,
-                    artist=subscriber.artist,
-                    status=Opportunity.OpportunityStatus.POTENTIAL
-                )
+@api_view(["POST"])
+def do_discover_opportunities(request: Request, concept_id):
+    try:
+        concept = Concept.objects.get(concept_id=concept_id)
+        discover_opportunities(concept)
+    except Concept.DoesNotExist:
+        return Response(
+            data={'error': 'Concept not found'}, 
+            status=drf_status.HTTP_404_NOT_FOUND
+        )
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
-def subscribe(request, organization_slug=None, concept_slug=None):
+def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=None):
     artist: Artist = None
     start = True
     successful = False
@@ -120,21 +113,21 @@ def subscribe(request, organization_slug=None, concept_slug=None):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def artist_list(_):
+def get_artist_list(_):
     artists = Artist.objects.all()
     return Response([ a.dict() for a in artists ])
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def opportunity_list(_):
+def get_opportunity_list(_):
     opportunities = Opportunity.objects.all()
     return Response([ o.dict() for o in opportunities ])
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def subscriber_list(_):
+def get_subscriber_list(_):
     subscribers = Subscriber.objects.all()
     return Response([ s.dict() for s in subscribers ])
 
@@ -164,25 +157,52 @@ def artist_view(request, artist_id=None):
         return Response(data, status=drf_status.HTTP_200_OK)
     
 
-@api_view(['GET', 'PUT'])
+@api_view(['PUT'])
 @permission_classes([AllowAny])
-def opportunity_update(request: Request, opportunity_id=None):
+def do_opportunity_update(request: Request, opportunity_id, invite_status=None, outcome_status=None):
     if opportunity_id:
         try:
             data = request.data
             opportunity = Opportunity.objects.get(opportunity_id=opportunity_id)
 
-            serializer = OpportunityUpdateSerializer(instance=opportunity, data=data)
-            if serializer.is_valid():
+            if opportunity.closed_at is not None:
                 return Response(
-                    data=OpportunitySerializer(instance=serializer.save()).data, 
-                    status=drf_status.HTTP_200_OK
+                    data={'error': 'Opportunity already closed'}, 
+                    status=drf_status.HTTP_406_NOT_ACCEPTABLE
                 )
             else:
-                return Response(
-                    data={**serializer.errors, 'error': 'invalid data provided'}, 
-                    status=drf_status.HTTP_400_BAD_REQUEST
-                )
+                serializer = OpportunityUpdateSerializer(instance=opportunity, data=data)
+                if serializer.is_valid():
+                    with transaction.atomic():
+                        opportunity: Opportunity = serializer.save()
+                        
+                        if invite_status in [
+                            Opportunity.InviteStatus.ACCEPTED,
+                            Opportunity.InviteStatus.SKIP,
+                            Opportunity.InviteStatus.EXPIRED
+                        ]:
+                            opportunity.status = invite_status
+                            opportunity.invite_closed_at = timezone.now()
+                        
+                        if invite_status in [
+                            Opportunity.InviteStatus.ACCEPTED,
+                            Opportunity.InviteStatus.SKIP,
+                            Opportunity.InviteStatus.EXPIRED
+                        ]:
+                            opportunity.outcome_status = outcome_status
+                            opportunity.opportunity_closed_at = timezone.now()
+                            
+                        opportunity.save()
+
+                        return Response(
+                            data=OpportunitySerializer(instance=opportunity).data, 
+                            status=drf_status.HTTP_200_OK
+                        )
+                else:
+                    return Response(
+                        data={**serializer.errors, 'error': 'invalid data provided'}, 
+                        status=drf_status.HTTP_400_BAD_REQUEST
+                    )
 
         except Shuffle.DoesNotExist:
             return Response(
@@ -198,11 +218,11 @@ def opportunity_update(request: Request, opportunity_id=None):
 
 @api_view(['GET', 'PUT'])
 @permission_classes([AllowAny])
-def subscriber_update(request: Request, subscriber_id=None):
+def do_subscriber_update(request: Request, subscriber_id=None):
     if subscriber_id:
         try:
             data = request.data
-            subscriber =Subscriber.objects.get(subscriber_id=subscriber_id)
+            subscriber = Subscriber.objects.get(subscriber_id=subscriber_id)
 
             serializer = SubscriberUpdateSerializer(instance=subscriber, data=data)
             if serializer.is_valid():
@@ -228,7 +248,7 @@ def subscriber_update(request: Request, subscriber_id=None):
         )
 
 
-def home(_):
+def go_home(_):
     concept: Concept = Concept.objects.all().first()
     curator: Curator = concept.curator
     organization: Organization = curator.organization

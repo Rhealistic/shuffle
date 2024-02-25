@@ -33,7 +33,6 @@ class ConceptAdmin(admin.ModelAdmin):
         "curator",
         "description",
         "slug",
-        "poster",
         "date"
     ]
 
