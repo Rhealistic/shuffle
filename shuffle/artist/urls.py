@@ -15,16 +15,15 @@ api = [
     path("v1/opportunity/<uuid:opportunity_id>/outcome/successful", views.do_opportunity_update, {'outcome_status': Opportunity.OutcomeStatus.SUCCESSFUL}),
     path("v1/opportunity/<uuid:opportunity_id>/outcome/cancelled", views.do_opportunity_update, {'outcome_status': Opportunity.OutcomeStatus.CANCELLED}),
     path("v1/opportunity/<uuid:opportunity_id>/outcome/postponed", views.do_opportunity_update, {'outcome_status': Opportunity.OutcomeStatus.POSTPONED}),
-    
     path("v1/opportunity/<uuid:opportunity_id>", views.do_opportunity_update),
+    
     path("v1/subscriber/", views.get_subscriber_list),
     path("v1/subscriber/<uuid:subscriber_id>", views.do_subscriber_update)
 ]
 
 web = [
     path("", views.go_home),
-    path("subscribe/<str:organization_slug>/<str:concept_slug>/", views.do_subscribe, name='view-concept'),
-    path("subscribe/<str:organization_slug>/<str:concept_slug>/apply/", views.do_subscribe, name='apply-to-concept')
+    path("subscribe/<str:organization_slug>/<str:concept_slug>/", views.do_subscribe, name='view-concept')
 ]
 
 urlpatterns = (api + web)

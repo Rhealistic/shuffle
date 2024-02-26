@@ -19,6 +19,26 @@ from .serializers import \
     OrganizationSerializer, ConceptSerializer
 
 
+@api_view(["POST"])
+def do_discover_opportunities(_, concept_id):
+    try:
+        concept = Concept.objects\
+            .filter(is_active=True)\
+            .filter(concept_id=concept_id)\
+            .get()
+        opportunities = utils.discover_opportunities(concept)
+
+        return Response(
+            data=OpportunitySerializer(opportunities, many=True).data, 
+            status=drf_status.HTTP_200_OK
+        )
+    except Concept.DoesNotExist:
+        return Response(
+            data={'error': 'Concept not found. The concept is either deleted or deactivated'}, 
+            status=drf_status.HTTP_404_NOT_FOUND
+        )
+
+
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_concepts(_, concept_id=None):

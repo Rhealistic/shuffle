@@ -16,19 +16,8 @@ from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 
 from .models import Artist, Opportunity, Subscriber
 from .forms import SubscriptionForm, ArtistForm
-from .utils import notify_subscriber, update_mailerlite, discover_opportunities
-from .serializers import OpportunitySerializer, OpportunityUpdateSerializer, SubscriberSerializer, SubscriberUpdateSerializer
-
-@api_view(["POST"])
-def do_discover_opportunities(request: Request, concept_id):
-    try:
-        concept = Concept.objects.get(concept_id=concept_id)
-        discover_opportunities(concept)
-    except Concept.DoesNotExist:
-        return Response(
-            data={'error': 'Concept not found'}, 
-            status=drf_status.HTTP_404_NOT_FOUND
-        )
+from .utils import notify_subscriber, update_mailerlite
+from .serializers import ArtistSerializer, OpportunitySerializer, OpportunityUpdateSerializer, SubscriberSerializer, SubscriberUpdateSerializer
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
@@ -115,21 +104,30 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
 @permission_classes([AllowAny])
 def get_artist_list(_):
     artists = Artist.objects.all()
-    return Response([ a.dict() for a in artists ])
+    return Response(
+        data=ArtistSerializer(artists, many=True).data,
+        status=drf_status.HTTP_200_OK
+    )
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_opportunity_list(_):
     opportunities = Opportunity.objects.all()
-    return Response([ o.dict() for o in opportunities ])
+    return Response(
+        data=OpportunitySerializer(opportunities, many=True).data,
+        status=drf_status.HTTP_200_OK
+    )
 
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_subscriber_list(_):
     subscribers = Subscriber.objects.all()
-    return Response([ s.dict() for s in subscribers ])
+    return Response(
+        data=SubscriberSerializer(subscribers, many=True).data,
+        status=drf_status.HTTP_200_OK
+    )
 
 
 @api_view(["GET", "POST"])
@@ -253,4 +251,4 @@ def go_home(_):
     curator: Curator = concept.curator
     organization: Organization = curator.organization
     
-    return redirect(f'/{organization.slug}/{concept.slug}')
+    return redirect(f'/subscribe/{organization.slug}/{concept.slug}')
