@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
+from shuffle.calendar.models import Event
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
@@ -138,30 +139,37 @@ def artist_view(request, artist_id=None):
     data = {}
     if request.method == "POST":
         data = {
-            **artist.dict(),
+            **ArtistSerializer(instance=artist).data,
             **json.loads(request.data)
         }
 
         form = ArtistForm(data=data, instance=artist)
         if form.is_valid():
             artist = form.save()
-            data = artist.dict()
-            return Response(data, status=drf_status.HTTP_201_CREATED)
+            return Response(
+                data=ArtistSerializer(instance=artist).data, 
+                status=drf_status.HTTP_201_CREATED)
         else:
             data = { "error": "Invalid Input", "message": form.errors }
             return Response(data, status=drf_status.HTTP_400_BAD_REQUEST)
     else:
-        data = artist.dict()
-        return Response(data, status=drf_status.HTTP_200_OK)
+        return Response(
+            data=ArtistSerializer(instance=artist).data, 
+            status=drf_status.HTTP_200_OK)
     
 
 @api_view(['PUT'])
 @permission_classes([AllowAny])
-def do_opportunity_update(request: Request, opportunity_id, invite_status=None, outcome_status=None):
+def do_opportunity_update(
+    _, 
+    opportunity_id:str, 
+    invite_status:Opportunity.InviteStatus=None, 
+    status:Opportunity.OpportunityStatus=None
+):
     if opportunity_id:
         try:
-            data = request.data
-            opportunity = Opportunity.objects.get(opportunity_id=opportunity_id)
+            opportunity: Opportunity = Opportunity.objects\
+                .get(opportunity_id=opportunity_id)
 
             if opportunity.closed_at is not None:
                 return Response(
@@ -169,37 +177,24 @@ def do_opportunity_update(request: Request, opportunity_id, invite_status=None, 
                     status=drf_status.HTTP_406_NOT_ACCEPTABLE
                 )
             else:
-                serializer = OpportunityUpdateSerializer(instance=opportunity, data=data)
-                if serializer.is_valid():
-                    with transaction.atomic():
-                        opportunity: Opportunity = serializer.save()
-                        
-                        if invite_status in [
-                            Opportunity.InviteStatus.ACCEPTED,
-                            Opportunity.InviteStatus.SKIP,
-                            Opportunity.InviteStatus.EXPIRED
-                        ]:
-                            opportunity.status = invite_status
-                            opportunity.invite_closed_at = timezone.now()
-                        
-                        if invite_status in [
-                            Opportunity.InviteStatus.ACCEPTED,
-                            Opportunity.InviteStatus.SKIP,
-                            Opportunity.InviteStatus.EXPIRED
-                        ]:
-                            opportunity.outcome_status = outcome_status
-                            opportunity.opportunity_closed_at = timezone.now()
-                            
-                        opportunity.save()
+                with transaction.atomic():
+                    if invite_status:
+                        opportunity.invite_status = invite_status
+                        opportunity.invite_closed_at = timezone.now()
 
-                        return Response(
-                            data=OpportunitySerializer(instance=opportunity).data, 
-                            status=drf_status.HTTP_200_OK
-                        )
-                else:
+                        if invite_status == Opportunity.InviteStatus.ACCEPTED:
+                            Event.objects.create(
+                                
+                            )
+
+                    if status:
+                        opportunity.status = status
+
+                    opportunity.save()
+
                     return Response(
-                        data={**serializer.errors, 'error': 'invalid data provided'}, 
-                        status=drf_status.HTTP_400_BAD_REQUEST
+                        data=OpportunitySerializer(instance=opportunity).data, 
+                        status=drf_status.HTTP_200_OK
                     )
 
         except Shuffle.DoesNotExist:

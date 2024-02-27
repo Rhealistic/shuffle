@@ -8,6 +8,5 @@ class EventAdmin(admin.ModelAdmin):
         'event_id',
         'title',
         'description',
-        'event_date',
         'venue',
     ]

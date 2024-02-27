@@ -33,7 +33,7 @@ class ConceptAdmin(admin.ModelAdmin):
         "curator",
         "description",
         "slug",
-        "date"
+        "start_date"
     ]
 
 @admin.register(Shuffle)

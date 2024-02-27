@@ -135,20 +135,14 @@ def do_shuffle(request: Request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def do_reshuffle(request: Request, shuffle_id=None):
+def do_reshuffle(request: Request, shuffle_id=None, invite_status=None):
     if shuffle_id:
         try:
             shuffle = Shuffle.objects.get(id=shuffle_id)
-            
-            if request.data.get('status') == "expired":
-                invite_status = Opportunity.OpportunityStatus.EXPIRED
-            elif request.data.get('status') == "skip":
-                invite_status = Opportunity.OpportunityStatus.SKIP
-            else:
-                invite_status = None
-                
+
             with transaction.atomic():
                 opportunity = utils.do_reshuffle(shuffle, invite_status=invite_status)
+
                 if opportunity:
                     return Response(
                         data=OpportunitySerializer(instance=opportunity).data, 

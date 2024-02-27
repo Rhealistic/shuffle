@@ -53,8 +53,14 @@ class Artist(models.Model):
 class Subscriber(models.Model):
     subscriber_id = models.UUIDField(max_length=30, default = uuid.uuid4)
 
-    concept = models.ForeignKey('curator.Concept', models.CASCADE, related_name='concept_subscriptions')
-    artist  = models.ForeignKey('Artist', models.CASCADE, related_name='subscriptions')
+    concept = models.ForeignKey(
+        'curator.Concept', models.CASCADE, 
+        related_name='concept_subscriptions', 
+        related_query_name='concept_subscription')
+    artist  = models.ForeignKey(
+        'Artist', models.CASCADE, 
+        related_name='subscriptions', 
+        related_query_name='subscription')
 
     selection_count = models.PositiveSmallIntegerField(default=0)
     acceptance_count = models.PositiveSmallIntegerField(default=0)
@@ -111,14 +117,8 @@ class Opportunity(models.Model):
         SENT = 1, 'Sent'
         WAITING_ACCEPTANCE = 2, 'Awaiting Acceptance'
         ACCEPTED = 3, 'Accepted'
-        SKIP = 4, 'Skip'
+        SKIP = 4, 'Skipped'
         EXPIRED = 5, 'Expired'
-
-    class OutcomeStatus(models.IntegerChoices):
-        PENDING = 0, 'Pending'
-        SUCCESSFUL = 1, 'Sent'
-        CANCELLED = 2, 'Cancelled'
-        POSTPONED = 3, 'Postponed'
 
     opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     
@@ -129,18 +129,13 @@ class Opportunity(models.Model):
         choices=OpportunityStatus.choices, null=True,
         default=OpportunityStatus.POTENTIAL
     )
-    
     invite_status = models.PositiveSmallIntegerField(
         choices=InviteStatus.choices, null=True, 
         default=InviteStatus.PENDING
     )
+
+    invite_sent_at = models.DateTimeField(blank=True, null=True)
     invite_closed_at = models.DateTimeField(blank=True, null=True)
-    
-    outcome_status = models.PositiveSmallIntegerField(
-        choices=OutcomeStatus.choices, null=True, 
-        default=OutcomeStatus.PENDING
-    )
-    # only closed on outcome
     opportunity_closed_at = models.DateTimeField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)

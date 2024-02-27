@@ -41,14 +41,24 @@ class Curator(models.Model):
 
 
 class Concept(models.Model):
+    class RecurrenceType(models.IntegerChoices):
+        DAILY = 0, "Daily"
+        WEEKLY = 1, "Weekly"
+        MONTHLY = 2, "Monthly"
+
+    concept_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
+
+    slug = models.SlugField(max_length=75, null=True)
     title = models.CharField(max_length=150)
     description = models.CharField(max_length=500)
 
-    curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
-    concept_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    start_date = models.DateTimeField(auto_now_add=True, blank=True)
+    is_recurring = models.BooleanField(default=False)
+    recurrence_type = models.PositiveSmallIntegerField(choices=RecurrenceType.choices, null=True)
 
-    slug = models.SlugField(max_length=75, null=True)
-    date = models.DateTimeField(auto_now_add=True, blank=True)
+    times_per_week = models.PositiveSmallIntegerField(blank=True, null=True)
+    times_per_month = models.PositiveSmallIntegerField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True, null=True)
 

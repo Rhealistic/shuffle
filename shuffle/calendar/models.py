@@ -14,20 +14,31 @@ class Event(models.Model):
         N_OCCURRENCES = 1, "After N Occurrences"
         END_DATE = 2, "End Date"
 
+    class Status(models.IntegerChoices):
+        PENDING = 0, 'Pending'
+        SUCCESSFUL = 1, 'Sent'
+        CANCELLED = 2, 'Cancelled'
+        RESCHEDULED = 3, 'Rescheduled'
+        FAILED = 4, 'Failed'
+
+
     event_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
 
     title = models.CharField(max_length=150)
     description = models.CharField(max_length=500)
     poster = models.URLField(max_length=500, null=True, blank=True)
-    event_date = models.DateTimeField()
+    
+    start = models.DateTimeField()
+    end = models.DateTimeField(null=True)
 
-    is_recurring = models.BooleanField(default=False)
-    recurrence_type = models.PositiveSmallIntegerField(choices=RecurrenceType.choices, null=True)
-    frequency = models.PositiveSmallIntegerField(null=True)
-    end_type = models.PositiveSmallIntegerField(choices=EndType.choices, null=True)
-    end_date = models.DateTimeField(null=True)
-
+    # is_recurring = models.BooleanField(default=False)
+    # recurrence_type = models.PositiveSmallIntegerField(choices=RecurrenceType.choices, null=True)
+    # frequency = models.PositiveSmallIntegerField(null=True)
+    # end_type = models.PositiveSmallIntegerField(choices=EndType.choices, null=True)
+    # end_date = models.DateTimeField(null=True)
+    
     venue = models.ForeignKey('venue.Venue', models.SET_NULL, related_name='venues', null=True)
+    status = models.PositiveSmallIntegerField(choices=  Status.choices, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)

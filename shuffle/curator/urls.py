@@ -1,5 +1,7 @@
 from django.urls import path
 
+from shuffle.artist.models import Opportunity
+
 from . import views
 
 urlpatterns = [
@@ -12,5 +14,7 @@ urlpatterns = [
 
     path("v1/shuffle", views.do_shuffle),
     path("v1/shuffle/<uuid:shuffle_id>", views.get_or_update_shuffle),
-    path("v1/shuffle/<uuid:shuffle_id>/reshuffle", views.do_reshuffle),
+
+    path("v1/shuffle/<uuid:shuffle_id>/expired", views.do_reshuffle, {'invite_status': Opportunity.InviteStatus.EXPIRED}),
+    path("v1/shuffle/<uuid:shuffle_id>/expired", views.do_reshuffle, {'invite_status': Opportunity.InviteStatus.EXPIRED}),
 ]
