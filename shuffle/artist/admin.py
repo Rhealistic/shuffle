@@ -17,7 +17,8 @@ class OpportunityAdmin(admin.ModelAdmin):
     list_display = [
         "subscriber",
         "status",
-        "invite_status"
+        "sent_at",
+        "closed_at"
     ]
 
 

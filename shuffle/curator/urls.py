@@ -15,6 +15,6 @@ urlpatterns = [
     path("v1/shuffle", views.do_shuffle),
     path("v1/shuffle/<uuid:shuffle_id>", views.get_or_update_shuffle),
 
-    path("v1/shuffle/<uuid:shuffle_id>/expired", views.do_reshuffle, {'invite_status': Opportunity.InviteStatus.EXPIRED}),
-    path("v1/shuffle/<uuid:shuffle_id>/expired", views.do_reshuffle, {'invite_status': Opportunity.InviteStatus.EXPIRED}),
+    path("v1/shuffle/<uuid:shuffle_id>/expired", views.do_reshuffle, {'invite_status': Opportunity.Status.EXPIRED}),
+    path("v1/shuffle/<uuid:shuffle_id>/expired", views.do_reshuffle, {'invite_status': Opportunity.Status.EXPIRED}),
 ]

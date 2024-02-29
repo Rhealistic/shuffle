@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from django.db import transaction
+from django.db import transaction, models
 from django.utils import timezone
 from django.shortcuts import render, redirect
 
@@ -10,6 +10,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
+from shuffle.artist.utils.discovery import get_next_day_of_week
 from shuffle.calendar.models import Event
 
 from shuffle.core.utils import json
@@ -18,7 +19,9 @@ from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 from .models import Artist, Opportunity, Subscriber
 from .forms import SubscriptionForm, ArtistForm
 from .utils import notify_subscriber, update_mailerlite
-from .serializers import ArtistSerializer, OpportunitySerializer, OpportunityUpdateSerializer, SubscriberSerializer, SubscriberUpdateSerializer
+from .serializers import \
+    ArtistSerializer, OpportunitySerializer, \
+    SubscriberSerializer, SubscriberUpdateSerializer
 
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
@@ -160,12 +163,7 @@ def artist_view(request, artist_id=None):
 
 @api_view(['PUT'])
 @permission_classes([AllowAny])
-def do_opportunity_update(
-    _, 
-    opportunity_id:str, 
-    invite_status:Opportunity.InviteStatus=None, 
-    status:Opportunity.OpportunityStatus=None
-):
+def do_opportunity_update(_, opportunity_id:str, status:Opportunity.Status=None):
     if opportunity_id:
         try:
             opportunity: Opportunity = Opportunity.objects\
@@ -178,19 +176,39 @@ def do_opportunity_update(
                 )
             else:
                 with transaction.atomic():
-                    if invite_status:
-                        opportunity.invite_status = invite_status
-                        opportunity.invite_closed_at = timezone.now()
-
-                        if invite_status == Opportunity.InviteStatus.ACCEPTED:
-                            Event.objects.create(
-                                
-                            )
-
                     if status:
                         opportunity.status = status
+                        opportunity.closed_at = timezone.now()
+                        opportunity.save()
 
-                    opportunity.save()
+                        if status == Opportunity.Status.ACCEPTED:
+                            Subscriber.objects\
+                                .filter(id=opportunity.subscriber_id)\
+                                .update(
+                                    acceptance_count=models.F('acceptance_count') + 1,
+                                    last_performance=models.F('next_performance'),
+                                    next_performance=get_next_day_of_week('friday'),#TODO: make generic
+                                    status=Subscriber.Status.NEXT_PERFORMING,
+                                )
+                        elif status == Opportunity.Status.EXPIRED:
+                            Subscriber.objects\
+                                .filter(id=opportunity.subscriber_id)\
+                                .update(
+                                    expired_count=models.F('expired_count') + 1,
+                                    next_performance=None,
+                                    last_performance=models.F('next_performance'),
+                                    status=Subscriber.Status.NEXT_CYCLE,
+                                )
+                        elif status == Opportunity.Status.SKIP:
+                            Subscriber.objects\
+                                .filter(id=opportunity.subscriber_id)\
+                                .update(
+                                    skip_count=models.F('skip_count') + 1,
+                                    next_performance=None,
+                                    last_performance=models.F('next_performance'),
+                                    status=Subscriber.Status.NEXT_CYCLE,
+                                )
+
 
                     return Response(
                         data=OpportunitySerializer(instance=opportunity).data, 

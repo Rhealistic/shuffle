@@ -6,7 +6,5 @@ from .models import Event
 class EventAdmin(admin.ModelAdmin):
     list_display = [
         'event_id',
-        'title',
-        'description',
         'venue',
     ]

@@ -30,27 +30,18 @@ class Artist(models.Model):
     class Meta:
         db_table = "artist_profile"
 
-    def dict(self):
-        return dict(
-            name=self.name,
-            bio=self.bio,
-            email=self.email,
-            phone=self.phone,
-            epk=self.epk,
-            photo=self.photo,
-            mixcloud=self.mixcloud,
-            soundcloud=self.soundcloud,
-            instagram=self.instagram,
-            country=self.country,
-            artist_id=self.artist_id,
-            mailerlite_subscriber_id=self.mailerlite_subscriber_id,
-            mailerlite_subscriber_group_id=self.mailerlite_subscriber_group_id,
-            created_at=self.created_at,
-            updated_at=self.updated_at
-        )
-
 
 class Subscriber(models.Model):
+    class Status(models.IntegerChoices):
+        # has been identified as a potential performer
+        POTENTIAL = 0, "Potential" 
+        # has been chosen to perform in the next event of the concept
+        NEXT_PERFORMING = 1, "Next Performing" 
+        # outcome was successful; artist performed
+        PERFORMED  = 2, "Performed" 
+        # outcome was unsuccessful; opportunity expired or artist skipped.
+        NEXT_CYCLE = 3, "Next Cycle"
+
     subscriber_id = models.UUIDField(max_length=30, default = uuid.uuid4)
 
     concept = models.ForeignKey(
@@ -61,6 +52,9 @@ class Subscriber(models.Model):
         'Artist', models.CASCADE, 
         related_name='subscriptions', 
         related_query_name='subscription')
+
+    status = models.PositiveSmallIntegerField(
+        choices=Status.choices, null=True,default=Status.POTENTIAL)
 
     selection_count = models.PositiveSmallIntegerField(default=0)
     acceptance_count = models.PositiveSmallIntegerField(default=0)
@@ -82,61 +76,25 @@ class Subscriber(models.Model):
     def __str__(self):
         return f'{self.concept}: {self.artist}'
     
-    
-    def dict(self):
-        return dict(
-            subscriber_id=self.subscriber_id,
-            concept_id=self.concept.concept_id,
-            artist_id=self.artist.artist_id,
-            selection_count=self.selection_count,
-            acceptance_count=self.acceptance_count,
-            expired_count=self.expired_count,
-            skip_count=self.skip_count,
-            performance_count=self.performance_count,
-            next_performance=self.next_performance,
-            last_performance=self.last_performance,
-            is_subscribed=self.is_subscribed,
-            created_at=self.created_at,
-            updated_at=self.updated_at
-        )
-
 
 class Opportunity(models.Model):
-    class OpportunityStatus(models.IntegerChoices):
-        # has been identified as a potential performer
-        POTENTIAL = 0, "Potential" 
-        # has been chosen to perform in the next event of the concept
-        NEXT_PERFORMING = 1, "Next Performing" 
-        # outcome was successful; artist performed
-        PERFORMED  = 2, "Performed" 
-        # outcome was unsuccessful; opportunity expired or artist skipped.
-        NEXT_CYCLE = 3, "Next Cycle"
-
-    class InviteStatus(models.IntegerChoices):
+    # pending > awaiting acceptance > (accepted | skip | expired)
+    class Status(models.IntegerChoices):
         PENDING = 0, 'Pending'
-        SENT = 1, 'Sent'
-        WAITING_ACCEPTANCE = 2, 'Awaiting Acceptance'
-        ACCEPTED = 3, 'Accepted'
-        SKIP = 4, 'Skipped'
-        EXPIRED = 5, 'Expired'
+        AWAITING_ACCEPTANCE = 1, 'Awaiting Acceptance'
+        ACCEPTED = 2, 'Accepted'
+        SKIP = 3, 'Skipped'
+        EXPIRED = 4, 'Expired'
 
     opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     
-    subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True)
-    event = models.ForeignKey('calendar.Event', models.SET_NULL, null=True)
+    subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, related_name='opportunities', related_query_name='opportunity')
+    event = models.ForeignKey('calendar.Event', models.SET_NULL, null=True, related_name='concept_opportunities', related_query_name='concept_opportunity')
 
-    status = models.PositiveSmallIntegerField(
-        choices=OpportunityStatus.choices, null=True,
-        default=OpportunityStatus.POTENTIAL
-    )
-    invite_status = models.PositiveSmallIntegerField(
-        choices=InviteStatus.choices, null=True, 
-        default=InviteStatus.PENDING
-    )
+    status = models.PositiveSmallIntegerField(choices=Status.choices, null=True, default=Status.PENDING)
 
-    invite_sent_at = models.DateTimeField(blank=True, null=True)
-    invite_closed_at = models.DateTimeField(blank=True, null=True)
-    opportunity_closed_at = models.DateTimeField(blank=True, null=True)
+    sent_at = models.DateTimeField(blank=True, null=True)
+    closed_at = models.DateTimeField(blank=True, null=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
@@ -147,17 +105,4 @@ class Opportunity(models.Model):
     def __str__(self):
         return str(self.subscriber)
 
-    def dict(self):
-        return dict(
-            opportunity_id=self.opportunity_id,
-            subscriber_id=self.subscriber.subscriber_id,
-            status=self.status,
-            invite_status=self.invite_status,
-            skipped_at=self.skipped_at,
-            accepted_at=self.accepted_at,
-            expired_at=self.expired_at,
-            created_at=self.created_at,
-            updated_at=self.updated_at
-        )
-    
     

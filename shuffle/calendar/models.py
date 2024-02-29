@@ -23,10 +23,6 @@ class Event(models.Model):
 
 
     event_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
-
-    title = models.CharField(max_length=150)
-    description = models.CharField(max_length=500)
-    poster = models.URLField(max_length=500, null=True, blank=True)
     
     start = models.DateTimeField()
     end = models.DateTimeField(null=True)
