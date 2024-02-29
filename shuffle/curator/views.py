@@ -5,18 +5,17 @@ from django.utils import timezone
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
-from rest_framework.request import Request
 from rest_framework import status as drf_status
 
 from shuffle.artist.serializers import OpportunitySerializer
+from shuffle.artist.utils.discovery import close_opportunity
 
 from ..artist.models import Opportunity
 
 from . import utils
 from .models import Concept, Shuffle, Organization
 from .serializers import \
-    ShuffleInputSerializer, ShuffleSerializer, \
-    OrganizationSerializer, ConceptSerializer
+    ShuffleSerializer, OrganizationSerializer, ConceptSerializer
 
 
 @api_view(["POST"])
@@ -71,9 +70,7 @@ def get_organizations(_, organization_slug=None, organization_id=None):
     if organization_slug or organization_id:
         try:
             organization = organizations\
-                .filter(
-                    Q(organization_id=organization_id) | 
-                    Q(organization_slug=organization_slug))\
+                .filter(Q(organization_id=organization_id) | Q(organization_slug=organization_slug))\
                 .get()
 
             return Response(
@@ -91,42 +88,22 @@ def get_organizations(_, organization_slug=None, organization_id=None):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def do_shuffle(request: Request):
-    data = request.data
+def do_shuffle(_, concept_id):
+    try:
+        concept = Concept.objects.get(concept_id=concept_id)
+        opportunity = utils.do_shuffle(concept)
 
-    if data.get('concept_id'):
-        try:
-            previous_shuffle = Shuffle.objects\
-                .filter(concept__concept_id=data.get('concept_id'))\
-                .filter(closed_at__isnull=True)\
-                .latest('created_at')
-        except Shuffle.DoesNotExist:
-            previous_shuffle = None
-        
-        with transaction.atomic():
-            concept = Concept.objects.get(concept_id=data.get('concept_id'))
-            shuffle = Shuffle.objects.create(
-                concept=concept, 
-                start_date=timezone.now(),
-                previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
-
-            opportunity = utils.do_shuffle(shuffle)
-
-            if opportunity:
-                return Response(
-                    data=OpportunitySerializer(instance=opportunity).data, 
-                    status=drf_status.HTTP_200_OK
-                )
-            else:
-                shuffle.status = Shuffle.ShuffleStatus.FAILED
-                shuffle.closed_at = timezone.now()
-                shuffle.save()
-            
-                return Response(
-                    data={'error': 'No artist found for shuffle'}, 
-                    status=drf_status.HTTP_404_NOT_FOUND
-                )
-    else:
+        if opportunity:
+            return Response(
+                data=OpportunitySerializer(instance=opportunity).data, 
+                status=drf_status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                data={'error': 'No artist found for shuffle'}, 
+                status=drf_status.HTTP_404_NOT_FOUND
+            )
+    except Concept.DoesNotExist:
         return Response(
             data={'error': 'Error running Shuffle'},
             status=drf_status.HTTP_400_BAD_REQUEST
@@ -135,13 +112,16 @@ def do_shuffle(request: Request):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def do_reshuffle(request: Request, shuffle_id=None, invite_status=None):
-    if shuffle_id:
-        try:
-            shuffle = Shuffle.objects.get(id=shuffle_id)
-
-            with transaction.atomic():
-                opportunity = utils.do_reshuffle(shuffle, invite_status=invite_status)
+def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
+    try:
+        previous: Opportunity = Opportunity.objects\
+            .filter(status=Opportunity.Status.PENDING)\
+            .filter(closed_at__isnull=True)\
+            .get(opportunity_id=opportunity_id)
+        
+        with transaction.atomic():
+            if previous and close_opportunity(previous, opportunity_status):
+                opportunity = utils.do_reshuffle(previous)
 
                 if opportunity:
                     return Response(
@@ -149,64 +129,62 @@ def do_reshuffle(request: Request, shuffle_id=None, invite_status=None):
                         status=drf_status.HTTP_404_NOT_FOUND
                     )
                 else:
-                    shuffle.status = Shuffle.ShuffleStatus.FAILED
-                    shuffle.closed_at = timezone.now()
-                    shuffle.save()
-
                     return Response(
                         data={'error': 'No artist found for shuffle'}, 
                         status=drf_status.HTTP_404_NOT_FOUND
                     )
-        except Shuffle.DoesNotExist:
-            return Response(
-                data={'error': 'Shuffle not found'},
-                status=drf_status.HTTP_404_NOT_FOUND
-            )
-    else:
+            else:
+                return Response(
+                    data={'error': 'Error running shuffle'},
+                    status=drf_status.HTTP_400_BAD_REQUEST
+                )
+    except Exception:
         return Response(
-            data={'error': 'Error running re-shuffle'},
+            data={'error': 'Error running shuffle'},
             status=drf_status.HTTP_400_BAD_REQUEST
         )
 
 
-@api_view(['GET', 'PUT'])
+@api_view(['GET'])
 @permission_classes([AllowAny])
-def get_or_update_shuffle(request: Request, shuffle_id=None):
-    shuffle: Shuffle = None
-
+def get_shuffle(_, shuffle_id=None):
     try:
         shuffle = Shuffle.objects.get(shuffle_id=shuffle_id)
+        return Response(
+            data=ShuffleSerializer(instance=shuffle).data, 
+            status=drf_status.HTTP_200_OK
+        )
     except Shuffle.DoesNotExist:
         return Response(
             data={'error': 'Shuffle not found'}, 
             status=drf_status.HTTP_404_NOT_FOUND
         )
 
-    if request.method == "PUT":
-        serializer = ShuffleInputSerializer(instance=shuffle, data=data)
-        data = request.data
 
-        if shuffle_id:
-            if serializer.is_valid():
-                return Response(
-                    data=ShuffleSerializer(instance=serializer.save()).data, 
-                    status=drf_status.HTTP_200_OK
-                )
-            else:
-                return Response(
-                    data={**serializer.errors, 'error': 'invalid data provided'}, 
-                    status=drf_status.HTTP_400_BAD_REQUEST
-                )
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def accept_shuffle_invite(_, opportunity_id=None):
+    try:
+        opportunity: Opportunity = Opportunity.objects.get(opportunity_id=opportunity_id)
+        shuffle = Shuffle.objects.get(shuffle_id=opportunity.shuffle_id)
 
+        if close_opportunity(opportunity, Opportunity.Status.ACCEPTED):
+            shuffle.status = Shuffle.Status.COMPLETE
+            shuffle.closed_at = timezone.now()
+            shuffle.save()
+
+            return Response(
+                data=ShuffleSerializer(instance=shuffle).data, 
+                status=drf_status.HTTP_200_OK
+            )
         else:
             return Response(
-                data={'error': 'Error updating Shuffle'},
-                status=drf_status.HTTP_400_BAD_REQUEST
+                data=ShuffleSerializer(instance=shuffle).data, 
+                status=drf_status.HTTP_200_OK
             )
-    else:
-        return Response(
-            data=ShuffleSerializer(instance=shuffle).data, 
-            status=drf_status.HTTP_200_OK
-        )
-
         
+    except Shuffle.DoesNotExist:
+        return Response(
+            data={'error': 'Shuffle not found'}, 
+            status=drf_status.HTTP_404_NOT_FOUND
+        )

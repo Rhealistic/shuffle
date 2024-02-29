@@ -7,7 +7,7 @@ from datetime import timedelta
 
 from shuffle.calendar.models import Event
 
-from ..artist.models import Artist, Opportunity, Subscriber
+from ..artist.models import Opportunity, Subscriber
 from .models import Shuffle
 
 from django.db import models
@@ -40,10 +40,10 @@ def discover_opportunities(concept: Concept):
                     models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
                 ) | 
                 (
-                    models.Q(status=Opportunity.Status.ACCEPTED, subscriber__status=Subscriber.Status.PERFORMED, event__status=Event.Status.SUCCESSFUL, last_performance__gte=days_ago(4 * 7)) 
+                    models.Q(status=Opportunity.Status.ACCEPTED, subscriber__status=Subscriber.Status.PERFORMED, event__status=Event.Status.SUCCESSFUL, subscriber__last_performance__gte=days_ago(4 * 7)) 
                 ) | 
                 (
-                    models.Q(status=Opportunity.Status.ACCEPTED, event__status_in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED, Event.Status.FAILED], closed_at__gte=days_ago(2 * 7))
+                    models.Q(status=Opportunity.Status.ACCEPTED, event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED, Event.Status.FAILED], closed_at__gte=days_ago(2 * 7))
                 ) | 
                 (
                     models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
@@ -57,62 +57,101 @@ def discover_opportunities(concept: Concept):
             new_opportunities.append(
                 Opportunity
                     .objects
-                    .create(concept=concept,artist=subscriber.artist))
+                    .create(subscriber=subscriber))
             
     return new_opportunities
 
+def prepare_invite(shuffle: Shuffle, pick: Subscriber):
+    opportunity = Opportunity.objects\
+        .filter(subscriber=pick)\
+        .filter(status=Opportunity.Status.PENDING)\
+        .filter(closed_at__isnull=True)\
+        .order_by('-created_at')\
+        .first()
+    
+    if opportunity:
+        opportunity.status = Opportunity.Status.AWAITING_ACCEPTANCE
+        opportunity.sent_at = timezone.now()
+        opportunity.shuffle_id = shuffle.shuffle_id
+        opportunity.save()
 
-def do_shuffle(shuffle: Shuffle):
+        shuffle.pick = pick
+        shuffle.status = Shuffle.Status.INVITE_SENT
+        shuffle.save()
+
+        return opportunity
+
+
+def do_shuffle(concept: Concept):
     with transaction.atomic():
-        artist: Artist = pick_performer(shuffle.concept)
+        previous_shuffle = Shuffle.objects\
+            .filter(concept=concept)\
+            .filter(closed_at__isnull=True)\
+            .latest('created_at')
+        
+        shuffle = Shuffle.objects.create(
+            concept=concept, 
+            start_date=timezone.now(),
+            status=Shuffle.Status.IN_PROGRESS,
+            previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
+        
+        concept.shuffle_count += 1
+        concept.save()
+        
+        r = 0
+        while r < 5:
+            pick: Subscriber = pick_performer(concept)
 
-        if artist:
-            opportunity = Opportunity.objects\
-                .filter(subscriber__artist=artist)\
-                .filter(subscriber__concept=shuffle.concept)\
-                .filter(closed_at__isnull=True)\
-                .order_by('-created_at')\
-                .first()
-            
-            if opportunity:
-                opportunity.status = Opportunity.Status.AWAITING_ACCEPTANCE
-                opportunity.sent_at = timezone.now()
-                opportunity.save()
+            if pick:
+                return prepare_invite(shuffle, pick)
 
-                shuffle.pick = artist
-                shuffle.save()
+            r += 1
 
-                return opportunity
+        shuffle.status = Shuffle.Status.FAILED
+        shuffle.closed_at = timezone.now()
+        shuffle.save()
 
 
-def do_reshuffle(shuffle: Shuffle, status=Opportunity.Status.EXPIRED):
+def do_reshuffle(previous: Opportunity):
     with transaction.atomic():
-        close_opportunity(shuffle.pick, shuffle.concept, status)
-        artist: Artist = pick_performer(shuffle.concept)
+        shuffle = Shuffle.objects\
+            .filter(closed_at__isnull=True)\
+            .get(shuffle_id=previous.shuffle_id)
+        
+        shuffle.status = Shuffle.Status.RESHUFFLE
+        shuffle.retries += 1
+        shuffle.save()
 
-        if artist:
-            shuffle.pick = artist
-            shuffle.retries += 1
-            shuffle.save()
+        shuffle.concept.reshuffle_count += 1
+        shuffle.concept.save()
+    
+        r = 0
+        while r < 5:
+            pick: Subscriber = pick_performer(shuffle.concept)
 
-            return artist\
-                .opportunities\
-                .order_by('-created_at')\
-                .first()
+            if pick:
+                return prepare_invite(shuffle, pick)
+
+            r += 1
+    
+        shuffle.status = Shuffle.Status.FAILED
+        shuffle.closed_at = timezone.now()
+        shuffle.save()
 
 
 def pick_performer(concept: Concept):
     with transaction.atomic():
-        artists = Artist.objects\
-            .filter(is_active=True)\
-            .filter(subscription__concept__in=[concept])\
-            .filter(subscription__opportunity__closed_at__isnull=True)
+        subscribers = Subscriber.objects\
+            .filter(artist__is_active=True)\
+            .filter(is_subscribed=True)\
+            .filter(concept=concept)\
+            .filter(opportunity__closed_at__isnull=True)
         
-        potentials = artists.filter(subscription__status=Subscriber.Status.POTENTIAL)
-        next_cycle = artists.filter(subscription__status=Subscriber.Status.NEXT_CYCLE)
-        performed  = artists.filter(subscription__status=Subscriber.Status.PERFORMED)
+        potentials = subscribers.filter(status=Subscriber.Status.POTENTIAL)
+        next_cycle = subscribers.filter(status=Subscriber.Status.NEXT_CYCLE)
+        performed  = subscribers.filter(status=Subscriber.Status.PERFORMED)
 
-        pick: Artist = None
+        pick: Subscriber = None
 
         if potentials.count() > 0:
             pick = potentials.order_by(Random()).first()
@@ -126,32 +165,10 @@ def pick_performer(concept: Concept):
             else:
                 pick = performed.order_by(Random()).first()
         
-        Subscriber.objects\
-            .filter(artist=pick)\
-            .filter(is_subscribed=True)\
-            .update(selection_count=F('selection_count') + 1)
+        if pick:
+            Subscriber.objects\
+                .filter(id=pick.id)\
+                .update(selection_count=F('selection_count') + 1)
         
-        return pick
+            return pick
 
-
-def close_opportunity(artist: Artist, concept:Concept, status:Opportunity.Status):
-    with transaction.atomic():
-        opportunity: Opportunity = artist\
-            .opportunities\
-            .filter(subscriber__concept=concept)\
-            .filter(closed_at__isnull=True)\
-            .order_by('-create_at')\
-            .first()
-
-        if opportunity:
-            opportunity.status = status
-            opportunity.closed_at = timezone.now()
-            opportunity.save()
-            
-            if status == Opportunity.Status.EXPIRED:
-                opportunity.subscriber.selection_count += 1
-                opportunity.subscriber.save()
-            elif status == Opportunity.Status.SKIP:
-                opportunity.subscriber.skip_count += 1
-                opportunity.subscriber.save()
-        

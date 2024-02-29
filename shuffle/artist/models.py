@@ -44,14 +44,10 @@ class Subscriber(models.Model):
 
     subscriber_id = models.UUIDField(max_length=30, default = uuid.uuid4)
 
-    concept = models.ForeignKey(
-        'curator.Concept', models.CASCADE, 
-        related_name='concept_subscriptions', 
-        related_query_name='concept_subscription')
-    artist  = models.ForeignKey(
-        'Artist', models.CASCADE, 
-        related_name='subscriptions', 
-        related_query_name='subscription')
+    concept = models.ForeignKey('curator.Concept', models.CASCADE, 
+        related_name='concept_subscriptions', related_query_name='concept_subscription')
+    artist  = models.ForeignKey('Artist', models.CASCADE, 
+        related_name='subscriptions', related_query_name='subscription')
 
     status = models.PositiveSmallIntegerField(
         choices=Status.choices, null=True,default=Status.POTENTIAL)
@@ -88,9 +84,12 @@ class Opportunity(models.Model):
 
     opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     
-    subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, related_name='opportunities', related_query_name='opportunity')
-    event = models.ForeignKey('calendar.Event', models.SET_NULL, null=True, related_name='concept_opportunities', related_query_name='concept_opportunity')
-
+    subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, 
+        related_name='opportunities', related_query_name='opportunity')
+    event = models.ForeignKey('calendar.Event', models.SET_NULL, null=True, blank=True, 
+        related_name='concept_opportunities', related_query_name='concept_opportunity')
+    
+    shuffle_id = models.UUIDField(null=True, blank=True)
     status = models.PositiveSmallIntegerField(choices=Status.choices, null=True, default=Status.PENDING)
 
     sent_at = models.DateTimeField(blank=True, null=True)

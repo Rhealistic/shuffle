@@ -16,8 +16,6 @@ class Organization(models.Model):
 
     is_active = models.BooleanField(default=True, null=True)
 
-    last_shuffle = models.DateTimeField(null=True)
-    next_shuffle = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
@@ -31,7 +29,11 @@ class Curator(models.Model):
     phone = models.CharField(max_length=30)
 
     curator_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
-    organization = models.ForeignKey('Organization', models.SET_NULL, null=True)
+    organization = models.ForeignKey('Organization', 
+        models.SET_NULL, null=True, related_name='curators', related_query_name='curator')
+
+    last_shuffle = models.DateTimeField(null=True, blank=True)
+    next_shuffle = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
@@ -46,19 +48,34 @@ class Concept(models.Model):
         WEEKLY = 1, "Weekly"
         MONTHLY = 2, "Monthly"
 
+    class DayOfWeek(models.IntegerChoices):
+        SUNDAY = 0, "Sunday"
+        MONDAY = 1, "Monday"
+        TUESDAY = 2, "Tuesday"
+        WEDNESDAY = 3, "Wednesday"
+        THURSDAY = 4, "Thursday"
+        FRIDAY = 5, "Friday"
+        SATURDAY = 6, "Saturday"
+
     concept_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
 
-    slug = models.SlugField(max_length=75, null=True)
     title = models.CharField(max_length=150)
+    slug = models.SlugField(max_length=75, null=True)
     description = models.CharField(max_length=500)
 
-    start_date = models.DateTimeField(auto_now_add=True, blank=True)
     is_recurring = models.BooleanField(default=False)
     recurrence_type = models.PositiveSmallIntegerField(choices=RecurrenceType.choices, null=True)
-
     times_per_week = models.PositiveSmallIntegerField(blank=True, null=True)
     times_per_month = models.PositiveSmallIntegerField(blank=True, null=True)
+    day_of_week = models.PositiveSmallIntegerField(choices=DayOfWeek.choices, null=True, blank=True)
+
+    start_date = models.DateField(auto_now_add=True, blank=True)
+    start_time = models.TimeField(null=True, blank=True)
+    end_time = models.TimeField(null=True, blank=True)
+
+    shuffle_count = models.PositiveSmallIntegerField(blank=True, null=True)
+    reshuffle_count = models.PositiveSmallIntegerField(blank=True, null=True)
 
     is_active = models.BooleanField(default=True, null=True)
 
@@ -71,24 +88,23 @@ class Concept(models.Model):
 
 class Shuffle(models.Model):
 
-    class ShuffleStatus(models.IntegerChoices):
-        STARTED = 0, "Started"
+    class Status(models.IntegerChoices):
+        PENDING = 0, "Pending"
         IN_PROGRESS = 1, "In Progress"
         INVITE_SENT = 2, "Invite Sent"
-        ACCEPTED = 3, "Accepted"
-        RESHUFFLE = 4, "Reshuffle"
-        COMPLETE = 5, "Complete"
-        FAILED = 6, "Failed"
+        RESHUFFLE = 3, "Reshuffle"
+        COMPLETE = 4, "Complete"
+        FAILED = 5, "Failed"
     
     shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
-    concept = models.ForeignKey('Concept', models.SET_NULL, null=True)
+    concept    = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
-    start_date = models.DateTimeField(null=True)
+    start_date  = models.DateTimeField(null=True)
     closed_at   = models.DateTimeField(null=True)
 
-    status = models.PositiveSmallIntegerField(choices=ShuffleStatus.choices, default=ShuffleStatus.STARTED)
+    pick    = models.ForeignKey("artist.Subscriber", models.SET_NULL, null=True)
+    status  = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
     retries = models.PositiveSmallIntegerField(default=0)
-    pick = models.ForeignKey("artist.Artist", models.SET_NULL, null=True)
 
     previous_shuffle_id = models.UUIDField(max_length=30, null=True)
 

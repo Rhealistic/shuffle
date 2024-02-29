@@ -1,8 +1,7 @@
 from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from django.db import transaction, models
-from django.utils import timezone
+from django.db import transaction
 from django.shortcuts import render, redirect
 
 from rest_framework.decorators import api_view, permission_classes
@@ -10,15 +9,13 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
-from shuffle.artist.utils.discovery import get_next_day_of_week
-from shuffle.calendar.models import Event
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 
 from .models import Artist, Opportunity, Subscriber
 from .forms import SubscriptionForm, ArtistForm
-from .utils import notify_subscriber, update_mailerlite
+from .utils import create_subscriber
 from .serializers import \
     ArtistSerializer, OpportunitySerializer, \
     SubscriberSerializer, SubscriberUpdateSerializer
@@ -48,31 +45,7 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
             if form.is_valid():
                 artist = form.save()
 
-                Subscriber.objects.create(concept=concept, artist=artist)
-
-                with transaction.atomic():
-                    if settings.IN_PRODUCTION:
-                        update_mailerlite(artist, **settings.MAILERLITE)
-
-                    try:
-                        notify_subscriber(artist)
-                        status = status.HTTP_201_CREATED
-
-                        successful = True
-                        messages.success(request, "Your profile was created successfully!")
-                    except Exception as e:
-                        status = status.HTTP_400_BAD_REQUEST
-                        context = {
-                            **context,
-                            "successful": False,
-                            "error": {
-                                "message": "Error notifying user"
-                            }
-                        }
-                        
-                        messages.error(request, "ERR_N01: An unexpected error occured")
-                        if settings.DEBUG:
-                            context["e"] = { "type": type(e).__name__, "message": str(e), "args": e.args }
+                create_subscriber(artist, concept)
 
     except ObjectDoesNotExist as e:
         context = {
@@ -116,8 +89,22 @@ def get_artist_list(_):
 
 @api_view(['GET'])
 @permission_classes([AllowAny])
-def get_opportunity_list(_):
+def get_opportunity_list(_, opportunity_id=None):
     opportunities = Opportunity.objects.all()
+
+    if opportunity_id:
+        try:
+            opportunity = opportunities.get(concept_id=opportunity_id)
+
+            return Response(
+                data=OpportunitySerializer(instance=opportunity).data, 
+                status=drf_status.HTTP_200_OK
+            )
+        except Opportunity.DoesNotExist:
+            return Response(
+                data={"error": "Opportunity NOT Found"}, 
+                status=drf_status.HTTP_404_NOT_FOUND)
+        
     return Response(
         data=OpportunitySerializer(opportunities, many=True).data,
         status=drf_status.HTTP_200_OK
@@ -160,71 +147,6 @@ def artist_view(request, artist_id=None):
             data=ArtistSerializer(instance=artist).data, 
             status=drf_status.HTTP_200_OK)
     
-
-@api_view(['PUT'])
-@permission_classes([AllowAny])
-def do_opportunity_update(_, opportunity_id:str, status:Opportunity.Status=None):
-    if opportunity_id:
-        try:
-            opportunity: Opportunity = Opportunity.objects\
-                .get(opportunity_id=opportunity_id)
-
-            if opportunity.closed_at is not None:
-                return Response(
-                    data={'error': 'Opportunity already closed'}, 
-                    status=drf_status.HTTP_406_NOT_ACCEPTABLE
-                )
-            else:
-                with transaction.atomic():
-                    if status:
-                        opportunity.status = status
-                        opportunity.closed_at = timezone.now()
-                        opportunity.save()
-
-                        if status == Opportunity.Status.ACCEPTED:
-                            Subscriber.objects\
-                                .filter(id=opportunity.subscriber_id)\
-                                .update(
-                                    acceptance_count=models.F('acceptance_count') + 1,
-                                    last_performance=models.F('next_performance'),
-                                    next_performance=get_next_day_of_week('friday'),#TODO: make generic
-                                    status=Subscriber.Status.NEXT_PERFORMING,
-                                )
-                        elif status == Opportunity.Status.EXPIRED:
-                            Subscriber.objects\
-                                .filter(id=opportunity.subscriber_id)\
-                                .update(
-                                    expired_count=models.F('expired_count') + 1,
-                                    next_performance=None,
-                                    last_performance=models.F('next_performance'),
-                                    status=Subscriber.Status.NEXT_CYCLE,
-                                )
-                        elif status == Opportunity.Status.SKIP:
-                            Subscriber.objects\
-                                .filter(id=opportunity.subscriber_id)\
-                                .update(
-                                    skip_count=models.F('skip_count') + 1,
-                                    next_performance=None,
-                                    last_performance=models.F('next_performance'),
-                                    status=Subscriber.Status.NEXT_CYCLE,
-                                )
-
-
-                    return Response(
-                        data=OpportunitySerializer(instance=opportunity).data, 
-                        status=drf_status.HTTP_200_OK
-                    )
-
-        except Shuffle.DoesNotExist:
-            return Response(
-                data={'error': 'Opportunity not found'}, 
-                status=drf_status.HTTP_404_NOT_FOUND
-            )
-    else:
-        return Response(
-            data={'error': 'Error updating Shuffle'},
-            status=drf_status.HTTP_400_BAD_REQUEST
-        )
 
 
 @api_view(['GET', 'PUT'])

@@ -26,7 +26,11 @@ class OpportunityAdmin(admin.ModelAdmin):
 class SubscriberAdmin(admin.ModelAdmin):
     list_display = [
         "subscriber_id",
+        "status",
         "concept",
         "artist",
-        "is_subscribed"
+        "is_subscribed",
+        "selection_count",
+        "next_performance",
+        "last_performance",
     ]
