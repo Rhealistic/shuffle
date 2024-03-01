@@ -155,7 +155,7 @@ def get_shuffle(_, shuffle_id=None):
         )
 
 
-@api_view(['GET'])
+@api_view(['POST'])
 @permission_classes([AllowAny])
 def accept_shuffle_invite(_, opportunity_id=None):
     try:
