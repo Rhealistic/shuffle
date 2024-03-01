@@ -70,7 +70,7 @@ class Concept(models.Model):
     times_per_month = models.PositiveSmallIntegerField(blank=True, null=True)
     day_of_week = models.PositiveSmallIntegerField(choices=DayOfWeek.choices, null=True, blank=True)
 
-    start_date = models.DateField(auto_now_add=True, blank=True)
+    start_date = models.DateField(null=True, blank=True)
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
 
