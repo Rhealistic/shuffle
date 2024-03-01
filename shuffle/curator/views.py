@@ -8,7 +8,6 @@ from rest_framework.response import Response
 from rest_framework import status as drf_status
 
 from shuffle.artist.serializers import OpportunitySerializer
-from shuffle.artist.utils.discovery import close_opportunity
 
 from ..artist.models import Opportunity
 
