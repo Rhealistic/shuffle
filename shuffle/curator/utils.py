@@ -113,10 +113,14 @@ def do_shuffle(concept: Concept):
             logger.error(f"shuffle on concept '{concept}' is in progress")
             return
         
-        previous_shuffle = Shuffle.objects\
-            .filter(concept=concept)\
-            .filter(closed_at__isnull=False)\
-            .latest('created_at')
+        try:
+            previous_shuffle = Shuffle.objects\
+                .filter(concept=concept)\
+                .filter(closed_at__isnull=False)\
+                .latest('created_at')
+        except Shuffle.DoesNotExist as e:
+            logging.exception(e)
+            previous_shuffle = None
         
         shuffle = Shuffle.objects.create(
             concept=concept, 

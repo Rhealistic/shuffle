@@ -16,6 +16,8 @@ from .models import Concept, Shuffle, Organization
 from .serializers import \
     ShuffleSerializer, OrganizationSerializer, ConceptSerializer
 
+import logging
+logger = logging.getLogger(__name__)
 
 @api_view(["POST"])
 def do_discover_opportunities(_, concept_id):
@@ -30,7 +32,9 @@ def do_discover_opportunities(_, concept_id):
             data=OpportunitySerializer(opportunities, many=True).data, 
             status=drf_status.HTTP_200_OK
         )
-    except Concept.DoesNotExist:
+    except Concept.DoesNotExist as e:
+        logging.exception(e)
+
         return Response(
             data={'error': 'Concept not found. The concept is either deleted or deactivated'}, 
             status=drf_status.HTTP_404_NOT_FOUND
@@ -50,7 +54,9 @@ def get_concepts(_, concept_id=None):
                 data=ConceptSerializer(instance=concept).data, 
                 status=drf_status.HTTP_200_OK
             )
-        except Concept.DoesNotExist:
+        except Concept.DoesNotExist as e:
+            logging.exception(e)
+
             return Response(
                 data={"error": "Concept NOT Found"}, 
                 status=drf_status.HTTP_404_NOT_FOUND)
@@ -76,7 +82,9 @@ def get_organizations(_, organization_slug=None, organization_id=None):
                 data=OrganizationSerializer(instance=organization).data, 
                 status=drf_status.HTTP_200_OK
             )
-        except Organization.DoesNotExist:
+        except Organization.DoesNotExist as e:
+            logging.exception(e)
+            
             return Response(data={"error": "Organization NOT Found"}, status=drf_status.HTTP_404_NOT_FOUND)
     
     return Response(
@@ -102,7 +110,9 @@ def do_shuffle(_, concept_id):
                 data={'error': 'Shuffle could not run at this time. Possible backlog.'}, 
                 status=drf_status.HTTP_400_BAD_REQUEST
             )
-    except Exception:
+    except Exception as e:
+        logging.exception(e)
+
         return Response(
             data={'error': 'Error running shuffle'},
             status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -131,7 +141,9 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
                     data={'error': 'No artist found for shuffle'}, 
                     status=drf_status.HTTP_404_NOT_FOUND
                 )
-    except Exception:
+    except Exception as e:
+        logging.exception(e)
+
         return Response(
             data={'error': 'Error running shuffle'},
             status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -147,7 +159,9 @@ def get_shuffle(_, shuffle_id=None):
             data=ShuffleSerializer(instance=shuffle).data, 
             status=drf_status.HTTP_200_OK
         )
-    except Shuffle.DoesNotExist:
+    except Shuffle.DoesNotExist as e:
+        logging.exception(e)
+
         return Response(
             data={'error': 'Shuffle not found'}, 
             status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR
@@ -172,7 +186,9 @@ def accept_shuffle_invite(_, opportunity_id=None):
                 status=drf_status.HTTP_200_OK
             )
         
-    except Exception:
+    except Exception as e:
+        logging.exception(e)
+
         return Response(
             data={'error': 'Error updating shuffle'}, 
             status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR
