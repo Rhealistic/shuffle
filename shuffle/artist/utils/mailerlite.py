@@ -49,7 +49,9 @@ def update_mailerlite(artist:Artist, api_key:str=None, group_id:str=None):
 
     return subscriber
 
-def notify_subscriber(artist: Artist):    
+def notify_subscriber(artist: Artist):  
+    logger.debug(f"notifying subscriber - {artist}")
+
     response = requests.post(
         "https://cloud.activepieces.com/api/v1/webhooks/TDpEguqydLUJe4SG2zp7X", data={
             "artist_name": artist.name,
@@ -57,5 +59,7 @@ def notify_subscriber(artist: Artist):
             "status": "signup"
         }
     )
+
+    logger.debug(f"subscriber notified")
 
     return response.content

@@ -74,8 +74,8 @@ class Concept(models.Model):
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
 
-    shuffle_count = models.PositiveSmallIntegerField(blank=True, null=True)
-    reshuffle_count = models.PositiveSmallIntegerField(blank=True, null=True)
+    shuffle_count = models.PositiveSmallIntegerField(default=0)
+    reshuffle_count = models.PositiveSmallIntegerField(default=0)
 
     is_active = models.BooleanField(default=True, null=True)
 
@@ -99,14 +99,14 @@ class Shuffle(models.Model):
     shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
     concept    = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
+    pick    = models.ForeignKey("artist.Subscriber", models.SET_NULL, null=True)
+    status  = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
+
+    retries = models.PositiveSmallIntegerField(default=0)
     start_date  = models.DateTimeField(null=True)
     closed_at   = models.DateTimeField(null=True)
 
-    pick    = models.ForeignKey("artist.Subscriber", models.SET_NULL, null=True)
-    status  = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
-    retries = models.PositiveSmallIntegerField(default=0)
-
-    previous_shuffle_id = models.UUIDField(max_length=30, null=True)
+    previous_shuffle_id = models.UUIDField(max_length=30, null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)

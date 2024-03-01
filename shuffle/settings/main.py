@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 
 import os
+import colorlog
 from pathlib import Path
 
 import dj_database_url
@@ -186,3 +187,35 @@ if config.get('ENVIRONMENT', 'production') == 'production':
     ]
     REST_FRAMEWORK['DEFAULT_AUTHENTICATION_CLASSES'] = []
     REST_FRAMEWORK['DEFAULT_PERMISSION_CLASSES'] = []
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'handlers': {
+        'colored_console': {
+            'level': 'DEBUG',
+            'class': 'logging.StreamHandler',
+            'formatter': 'colored',
+        },
+    },
+    'formatters': {
+        'colored': {
+            '()': colorlog.ColoredFormatter,
+            'format': "%(log_color)s%(levelname)-8s%(reset)s %(blue)s%(message)s",
+            'datefmt': "%Y-%m-%d %H:%M:%S",
+            'log_colors': {
+                'DEBUG':    'cyan',
+                'INFO':     'green',
+                'WARNING':  'yellow',
+                'ERROR':    'red',
+                'CRITICAL': 'red,bg_white',
+            },
+        },
+    },
+    'loggers': {
+        '': {
+            'handlers': ['colored_console'],
+            'level': 'DEBUG',
+        },
+    },
+}
