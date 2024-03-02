@@ -82,14 +82,14 @@ class Opportunity(models.Model):
         SKIP = 3, 'Skipped'
         EXPIRED = 4, 'Expired'
 
-    opportunity_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    opportunity_id = models.UUIDField(default= uuid.uuid4)
+    shuffle_id = models.UUIDField(null=True, blank=True)
     
     subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, 
         related_name='opportunities', related_query_name='opportunity')
     event = models.ForeignKey('calendar.Event', models.SET_NULL, null=True, blank=True, 
         related_name='concept_opportunities', related_query_name='concept_opportunity')
     
-    shuffle_id = models.UUIDField(null=True, blank=True)
     status = models.PositiveSmallIntegerField(choices=Status.choices, null=True, default=Status.PENDING)
 
     sent_at = models.DateTimeField(blank=True, null=True)
@@ -103,5 +103,3 @@ class Opportunity(models.Model):
 
     def __str__(self):
         return str(self.subscriber)
-
-    

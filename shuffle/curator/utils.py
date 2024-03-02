@@ -1,5 +1,5 @@
 from django.db import transaction
-from django.db.models import F
+from django.db import models
 from django.db.models.functions import Random
 
 from django.utils import timezone
@@ -7,12 +7,11 @@ from datetime import timedelta
 from shuffle.artist.utils.discovery import close_opportunity
 
 from shuffle.calendar.models import Event
+from shuffle.curator.models import Concept
+
 
 from ..artist.models import Opportunity, Subscriber
 from .models import Shuffle
-
-from django.db import models
-from shuffle.curator.models import Concept
 
 import logging
 logger = logging.getLogger(__name__)
@@ -98,6 +97,8 @@ def prepare_invite(shuffle: Shuffle, pick: Subscriber):
         shuffle.save()
 
         return opportunity
+    else:
+        logger.debug(f"Opportunity not found for artist")
 
 
 def do_shuffle(concept: Concept):
@@ -202,6 +203,7 @@ def pick_performer(concept: Concept):
             .filter(artist__is_active=True)\
             .filter(is_subscribed=True)\
             .filter(concept=concept)\
+            .filter(opportunity__status=Opportunity.Status.PENDING)\
             .filter(opportunity__closed_at__isnull=True)
         
         potentials = subscribers.filter(status=Subscriber.Status.POTENTIAL)
@@ -212,6 +214,7 @@ def pick_performer(concept: Concept):
 
         if potentials.count() > 0:
             logger.debug(f"{potentials.count()} 'POTENTIAL' status subscribers found")
+
             pick = potentials\
                 .order_by(Random())\
                 .first()
