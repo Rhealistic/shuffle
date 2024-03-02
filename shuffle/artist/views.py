@@ -20,11 +20,13 @@ from .serializers import \
     ArtistSerializer, OpportunitySerializer, \
     SubscriberSerializer, SubscriberUpdateSerializer
 
+import logging
+logger = logging.getLogger(__name__)
+
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=None):
     artist: Artist = None
-    start = True
     successful = False
     errors = None
     context = {}
@@ -41,16 +43,24 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
             form = SubscriptionForm(request.POST, request.FILES)
             
             if form.is_valid():
-                artist = form.save()
-                create_subscriber(artist, concept)
-                successful = True
-                start = False
+                logger.info("Subscription form is valid")
+
+                try:
+                    artist = form.save()
+                    create_subscriber(artist, concept)
+                    status = drf_status.HTTP_201_CREATED
+                    successful = True
+                except Exception as e:
+                    status = drf_status.HTTP_400_BAD_REQUEST
+                
 
     except ObjectDoesNotExist as e:
         status = drf_status.HTTP_404_NOT_FOUND
 
         messages.error(request, "ERR_404: Concept not found")
     except Exception as e:
+        logger.exception(e)
+
         errors = {
             "errors": "500: Server Error"
         }
@@ -67,7 +77,6 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
         "artist": artist,
         "form": form,
         "errors": errors,
-        "start": start,
         "successful": successful,
     }, status=status)
 

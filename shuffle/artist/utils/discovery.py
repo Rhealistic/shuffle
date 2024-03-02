@@ -42,13 +42,7 @@ def create_subscriber(artist, concept):
         subscriber = Subscriber.objects.create(concept=concept, artist=artist)
         logger.debug(f"subscriber - {subscriber}")
 
-        try:
-            notify_subscriber(artist)
-            status = status.HTTP_201_CREATED
-
-        except Exception as e:
-            status = status.HTTP_400_BAD_REQUEST
-    
+        notify_subscriber(artist)
         return subscriber
 
 def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):

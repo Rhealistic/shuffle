@@ -122,7 +122,35 @@
     <body>
         {% bootstrap_messages %}
         
-        {% if start %}
+        {% if successful %}
+            <div class="container">
+                <div class="mt-5">
+                    <div class="box">
+                        <div class="text-content success">
+                            <h1 class="header success p-5">Application Received</h1>
+                            <div class="col-lg-5 col-sm-12 col-md-6">
+                                <img src="https://storage.mlcdn.com/account_image/204905/qDgb5ElWEv4OBOvSJBtFkAL1lya9KCCAdWxgiHMX.png" class="py-6 mx-auto d-block" alt="...">
+                            </div>
+                            <div class="p-5">
+                                <p>
+                                    Your application has been received by our <b>curator</b>.
+                                </p>
+                                <p>
+                                    Be on the look out for our shuffle that happens every <b>Saturday at 9AM.</b> You will receive an <b>SMS</b> and a chance 
+                                    to perform at our Jenga Jungle slot.
+                                </p>
+                                <br >
+                                <hr >
+                                <br >
+                                <a href="/" type="submit" class="btn btn-success btn-lg">
+                                    << GO HOME
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
             <div class="main-container">
                 <div class="content-container">
                     <div class="container">
@@ -168,36 +196,6 @@
                     </div>
                 </div>
             </div>
-        {% else %}
-            {% if successful %}
-                <div class="container">
-                    <div class="mt-5">
-                        <div class="box">
-                            <div class="text-content success">
-                                <h1 class="header success p-5">Application Received</h1>
-                                <div class="col-lg-5 col-sm-12 col-md-6">
-                                    <img src="https://storage.mlcdn.com/account_image/204905/qDgb5ElWEv4OBOvSJBtFkAL1lya9KCCAdWxgiHMX.png" class="py-6 mx-auto d-block" alt="...">
-                                </div>
-                                <div class="p-5">
-                                    <p>
-                                        Your application has been received by our <b>curator</b>.
-                                    </p>
-                                    <p>
-                                        Be on the look out for our shuffle that happens every <b>Saturday at 9AM.</b> You will receive an <b>SMS</b> and a chance 
-                                        to perform at our Jenga Jungle slot.
-                                    </p>
-                                    <br >
-                                    <hr >
-                                    <br >
-                                    <a href="/" type="submit" class="btn btn-success btn-lg">
-                                        << GO HOME
-                                    </a>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            {% endif %}
         {% endif %}
 
         <!-- Optional JavaScript; choose one of the two! -->
