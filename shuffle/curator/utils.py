@@ -171,6 +171,10 @@ def do_reshuffle(current: Opportunity, opportunity_status):
             shuffle.retries += 1
             shuffle.save()
 
+            current.status = opportunity_status
+            current.closed_at = timezone.now()
+            current.save()
+
             shuffle.concept.reshuffle_count += 1
             shuffle.concept.save()
         
