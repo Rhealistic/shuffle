@@ -24,6 +24,9 @@ def do_discover_opportunities(_, concept_id):
     try:
         concept = Concept.objects\
             .filter(is_active=True)\
+            .filter(curator__organization__is_active=True)\
+            .filter(curator__is_active=True)\
+            .filter(is_active=True)\
             .filter(concept_id=concept_id)\
             .get()
         opportunities = utils.discover_opportunities(concept)
@@ -44,7 +47,10 @@ def do_discover_opportunities(_, concept_id):
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def get_concepts(_, concept_id=None):
-    concepts = Concept.objects.filter(is_active=True)
+    concepts = Concept.objects\
+        .filter(curator__organization__is_active=True)\
+        .filter(curator__is_active=True)\
+        .filter(is_active=True)\
     
     if concept_id:
         try:
@@ -97,7 +103,12 @@ def get_organizations(_, organization_slug=None, organization_id=None):
 @permission_classes([AllowAny])
 def do_shuffle(_, concept_id):
     try:
-        concept = Concept.objects.get(concept_id=concept_id)
+        concept = Concept.objects\
+            .filter(curator__organization__is_active=True)\
+            .filter(curator__is_active=True)\
+            .filter(is_active=True)\
+            .filter(concept_id=concept_id)\
+            .get()
         opportunity = utils.do_shuffle(concept)
 
         if opportunity:
@@ -126,8 +137,12 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
         previous: Opportunity = Opportunity.objects\
             .filter(status=Opportunity.Status.PENDING)\
             .filter(closed_at__isnull=True)\
-            .get(opportunity_id=opportunity_id)
-        
+            .filter(concept__curator__organization__is_active=True)\
+            .filter(concept__curator__is_active=True)\
+            .filter(subscriber__is_subscribed=True)\
+            .filter(opportunity_id=opportunity_id)\
+            .get()
+
         with transaction.atomic():
             opportunity = utils.do_reshuffle(previous, opportunity_status)
 
@@ -154,7 +169,11 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
 @permission_classes([AllowAny])
 def get_shuffle(_, shuffle_id=None):
     try:
-        shuffle = Shuffle.objects.get(shuffle_id=shuffle_id)
+        shuffle = Shuffle.objects\
+            .filter(curator__organization__is_active=True)\
+            .filter(curator__is_active=True)\
+            .filter(shuffle_id=shuffle_id)\
+            .get()
         return Response(
             data=ShuffleSerializer(instance=shuffle).data, 
             status=drf_status.HTTP_200_OK
@@ -172,8 +191,18 @@ def get_shuffle(_, shuffle_id=None):
 @permission_classes([AllowAny])
 def accept_shuffle_invite(_, opportunity_id=None):
     try:
-        opportunity: Opportunity = Opportunity.objects.get(opportunity_id=opportunity_id)
-        shuffle = Shuffle.objects.get(shuffle_id=opportunity.shuffle_id)
+        opportunity: Opportunity = Opportunity.objects\
+            .filter(concept__curator__organization__is_active=True)\
+            .filter(concept__curator__is_active=True)\
+            .filter(subscriber__is_subscribed=True)\
+            .filter(opportunity_id=opportunity_id)\
+            .get()
+        shuffle = Shuffle.objects\
+            .filter(curator__organization__is_active=True)\
+            .filter(curator__is_active=True)\
+            .filter(concept=opportunity.co)\
+            .filter(shuffle_id=opportunity.shuffle_id)\
+            .get()
 
         if utils.accept_invite(shuffle, opportunity):
             return Response(

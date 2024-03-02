@@ -35,6 +35,8 @@ class Curator(models.Model):
     last_shuffle = models.DateTimeField(null=True, blank=True)
     next_shuffle = models.DateTimeField(null=True, blank=True)
 
+    is_active = models.BooleanField(default=True, null=True)
+
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 
