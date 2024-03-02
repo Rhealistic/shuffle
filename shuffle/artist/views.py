@@ -9,6 +9,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
+from shuffle.artist.utils.mailerlite import notify_subscriber
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
@@ -43,14 +44,10 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
             if form.is_valid():
                 logger.info("Subscription form is valid")
 
-                try:
-                    artist = form.save()
-                    create_subscriber(artist, concept)
-                    status = drf_status.HTTP_201_CREATED
-                    successful = True
-                except Exception as e:
-                    status = drf_status.HTTP_400_BAD_REQUEST
+                Subscriber.objects.create(concept=concept, artist=form.save())
                 
+                status = drf_status.HTTP_201_CREATED
+                successful = True
 
     except ObjectDoesNotExist as e:
         status = drf_status.HTTP_404_NOT_FOUND

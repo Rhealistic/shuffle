@@ -1,12 +1,11 @@
 from datetime import datetime, timedelta
 
-from django.db import transaction, models
+from django.db import models
 from django.utils import timezone
 
 from shuffle.curator.models import Concept
 
 from ..models import Opportunity, Subscriber
-from .mailerlite import notify_subscriber
 
 import logging
 logger = logging.getLogger(__name__)
@@ -34,16 +33,6 @@ def get_next_day_of_week(day_of_week):
     logger.debug(f"next_day({next_day})")
 
     return next_day
-
-def create_subscriber(artist, concept):
-    logger.debug(f"create_subscriber({artist}, {concept})")
-
-    with transaction.atomic():
-        subscriber = Subscriber.objects.create(concept=concept, artist=artist)
-        logger.debug(f"subscriber - {subscriber}")
-
-        notify_subscriber(artist)
-        return subscriber
 
 def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
     logger.debug(f"close_opportunity({opportunity}, {status})")
