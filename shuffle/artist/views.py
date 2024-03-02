@@ -1,7 +1,5 @@
-from django.conf import settings
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
-from django.db import transaction
 from django.shortcuts import render, redirect
 
 from rest_framework.decorators import api_view, permission_classes
@@ -9,14 +7,12 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
-from shuffle.artist.utils.mailerlite import notify_subscriber
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 
 from .models import Artist, Opportunity, Subscriber
 from .forms import SubscriptionForm, ArtistForm
-from .utils import create_subscriber
 from .serializers import \
     ArtistSerializer, OpportunitySerializer, \
     SubscriberSerializer, SubscriberUpdateSerializer
