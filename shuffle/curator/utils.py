@@ -237,7 +237,7 @@ def pick_performer(concept: Concept):
         if pick:
             logger.debug(f"{pick} picked!")
         else:
-            logger.waring(f"The pick is empty!")
+            logger.warning(f"The pick is empty!")
 
         return pick
 

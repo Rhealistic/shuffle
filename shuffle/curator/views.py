@@ -135,7 +135,7 @@ def do_shuffle(_, concept_id):
 def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
     try:
         previous: Opportunity = Opportunity.objects\
-            .filter(status=Opportunity.Status.PENDING)\
+            .filter(status=Opportunity.Status.AWAITING_ACCEPTANCE)\
             .filter(closed_at__isnull=True)\
             .filter(subscriber__concept__curator__organization__is_active=True)\
             .filter(subscriber__concept__curator__is_active=True)\
