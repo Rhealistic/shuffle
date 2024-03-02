@@ -29,6 +29,7 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
     errors = None
     context = {}
     form = SubscriptionForm()
+    status = drf_status.HTTP_200_OK
 
     try:
         concept = Concept.objects\
@@ -36,22 +37,16 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
             .filter(slug=concept_slug)\
             .get()
 
-        if request.method == "GET":
-            status = drf_status.HTTP_200_OK
-        
-        elif request.method == "POST":
+        if request.method == "POST":
             form = SubscriptionForm(request.POST, request.FILES)
             
             if form.is_valid():
                 artist = form.save()
-
                 create_subscriber(artist, concept)
+                successful = True
+                start = False
 
     except ObjectDoesNotExist as e:
-        context = {
-            **context,
-            'message': "ERR_N404: Object not found"
-        }
         status = drf_status.HTTP_404_NOT_FOUND
 
         messages.error(request, "ERR_404: Concept not found")
