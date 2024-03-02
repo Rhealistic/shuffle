@@ -149,12 +149,12 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
             if opportunity:
                 return Response(
                     data=OpportunitySerializer(instance=opportunity).data, 
-                    status=drf_status.HTTP_404_NOT_FOUND
+                    status=drf_status.HTTP_200_OK
                 )
             else:
                 return Response(
-                    data={'error': 'No artist found for shuffle'}, 
-                    status=drf_status.HTTP_404_NOT_FOUND
+                    data={'error': 'Shuffle could not run.'}, 
+                    status=drf_status.HTTP_406_NOT_ACCEPTABLE
                 )
     except Exception as e:
         logging.exception(e)
