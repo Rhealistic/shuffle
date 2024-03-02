@@ -137,8 +137,8 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
         previous: Opportunity = Opportunity.objects\
             .filter(status=Opportunity.Status.PENDING)\
             .filter(closed_at__isnull=True)\
-            .filter(concept__curator__organization__is_active=True)\
-            .filter(concept__curator__is_active=True)\
+            .filter(subscriber__concept__curator__organization__is_active=True)\
+            .filter(subscriber__concept__curator__is_active=True)\
             .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
             .get()
@@ -192,8 +192,8 @@ def get_shuffle(_, shuffle_id=None):
 def accept_shuffle_invite(_, opportunity_id=None):
     try:
         opportunity: Opportunity = Opportunity.objects\
-            .filter(concept__curator__organization__is_active=True)\
-            .filter(concept__curator__is_active=True)\
+            .filter(subscriber__concept__curator__organization__is_active=True)\
+            .filter(subscriber__concept__curator__is_active=True)\
             .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
             .get()
