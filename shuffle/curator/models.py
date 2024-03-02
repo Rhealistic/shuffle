@@ -108,8 +108,6 @@ class Shuffle(models.Model):
     start_date  = models.DateTimeField(null=True)
     closed_at   = models.DateTimeField(null=True)
 
-    previous_shuffle_id = models.UUIDField(max_length=30, null=True, blank=True)
-
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
 

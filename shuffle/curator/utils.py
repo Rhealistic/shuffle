@@ -75,14 +75,15 @@ def discover_opportunities(concept: Concept):
 def prepare_invite(shuffle: Shuffle, pick: Subscriber):
     logger.debug(f"prepare_invite({shuffle}, {pick})")
 
-    opportunity = Opportunity.objects\
+    opportunities = Opportunity.objects\
         .filter(subscriber=pick)\
         .filter(status=Opportunity.Status.PENDING)\
         .filter(closed_at__isnull=True)\
-        .order_by('-created_at')\
-        .first()
+        .order_by('-created_at')
     
-    if opportunity:
+    if opportunities.exists():
+        opportunity = opportunities.first()
+
         logger.debug(f"awaiting acceptance for opportunity ({opportunity})")
 
         opportunity.status = Opportunity.Status.AWAITING_ACCEPTANCE
@@ -114,21 +115,11 @@ def do_shuffle(concept: Concept):
             logger.error(f"Shuffle: shuffle on concept '{concept}' is in progress")
             return
         
-        try:
-            previous_shuffle = Shuffle.objects\
-                .filter(concept=concept)\
-                .filter(closed_at__isnull=False)\
-                .latest('created_at')
-        except Shuffle.DoesNotExist as e:
-            logging.debug("Shuffle: Previous shuffle not found")
-            previous_shuffle = None
+        logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}'")
         
         shuffle = Shuffle.objects.create(
             concept=concept, 
-            start_date=timezone.now(),
-            previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
-        
-        logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}' previous shuffle {shuffle.shuffle_id}")
+            start_date=timezone.now())
         
         concept.shuffle_count += 1
         concept.save()
@@ -138,7 +129,7 @@ def do_shuffle(concept: Concept):
             pick: Subscriber = pick_performer(concept)
 
             if pick:
-                logger.debug(f"Shuffle: Retry - {r}: `{pick}` has been picked for concept `{concept}` shuffle")
+                logger.debug(f"Shuffle: Retry - {r + 1}: `{pick}` has been picked for concept `{concept}` shuffle")
                 pick.selection_count += 1
                 pick.save()
                 
@@ -183,12 +174,16 @@ def do_reshuffle(current: Opportunity, opportunity_status):
                 pick: Subscriber = pick_performer(shuffle.concept)
 
                 if pick:
-                    logger.debug(f"Reshuffle: retry - {r}: {pick} has been picked for concept {shuffle.concept} shuffle")
+                    logger.debug(f"Reshuffle: retry - {r + 1}: {pick} has been picked for concept {shuffle.concept} shuffle")
 
                     pick.selection_count += 1
                     pick.save()
 
                     return prepare_invite(shuffle, pick)
+                
+                else:
+                    logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
+
 
                 r += 1
 
@@ -202,48 +197,48 @@ def do_reshuffle(current: Opportunity, opportunity_status):
 def pick_performer(concept: Concept):
     logger.debug(f"pick_performer({concept})")
 
+    subscribers = Subscriber.objects\
+        .filter(artist__is_active=True)\
+        .filter(is_subscribed=True)\
+        .filter(concept=concept)\
+        .filter(opportunity__status=Opportunity.Status.PENDING)\
+        .filter(opportunity__closed_at__isnull=True)
+
     with transaction.atomic():
-        subscribers = Subscriber.objects\
-            .filter(artist__is_active=True)\
-            .filter(is_subscribed=True)\
-            .filter(concept=concept)\
-            .filter(opportunity__status=Opportunity.Status.PENDING)\
-            .filter(opportunity__closed_at__isnull=True)
-        
-        potentials = subscribers.filter(status=Subscriber.Status.POTENTIAL)
-        next_cycle = subscribers.filter(status=Subscriber.Status.NEXT_CYCLE)
-        performed  = subscribers.filter(status=Subscriber.Status.PERFORMED)
-
-        pick: Subscriber = None
-
+        potentials = subscribers\
+            .filter(status=Subscriber.Status.POTENTIAL)
         if potentials.count() > 0:
             logger.debug(f"{potentials.count()} 'POTENTIAL' status subscribers found")
 
-            pick = potentials\
+            return potentials\
                 .order_by(Random())\
                 .first()
-        elif next_cycle.count() > 0:
+
+        next_cycle = subscribers\
+            .filter(status=Subscriber.Status.NEXT_CYCLE)
+        if next_cycle.count() > 0:
             logger.debug(f"{next_cycle.count()} 'NEXT_CYCLE' status subscribers found found")
 
-            pick = next_cycle\
+            return next_cycle\
                 .order_by(Random())\
                 .first()
-        elif performed.count() > 0:
-            performed_atmost_once = performed.filter(subscription__performance_count_lte=1)
 
-            if performed_atmost_once.count > 0:
-                logger.debug(f"{performed.count()} 'PERFORMED - ATLEAST ONCE' subscribers found found")
-                pick = performed_atmost_once.order_by(Random()).first()
-            else:
-                logger.debug(f"{performed.count()} 'PERFORMED - MORE THAN ONCE' status subscribers found found")
-                pick = performed.order_by(Random()).first()
-        
-        if pick:
-            logger.debug(f"{pick} picked!")
+        performed  = subscribers\
+            .filter(status=Subscriber.Status.PERFORMED)
+
+        performed_atmost_once = performed\
+            .filter(subscription__performance_count_lte=1)
+
+        if performed_atmost_once.count() > 0:
+            logger.debug(f"{performed_atmost_once.count()} 'PERFORMED - ATLEAST ONCE' subscribers found found")
+            return performed_atmost_once\
+                .order_by(Random())\
+                .first()
         else:
-            logger.warning(f"The pick is empty!")
-
-        return pick
+            logger.debug(f"{performed.count()} 'PERFORMED - MORE THAN ONCE' status subscribers found found")
+            return performed\
+                .order_by(Random())\
+                .first()
 
 
 def accept_invite(shuffle, opportunity):

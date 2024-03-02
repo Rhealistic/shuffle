@@ -134,28 +134,24 @@ def do_shuffle(_, concept_id):
 @permission_classes([AllowAny])
 def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
     try:
-        previous: Opportunity = Opportunity.objects\
+        current: Opportunity = Opportunity.objects\
             .filter(status=Opportunity.Status.AWAITING_ACCEPTANCE)\
             .filter(closed_at__isnull=True)\
-            .filter(subscriber__concept__curator__organization__is_active=True)\
-            .filter(subscriber__concept__curator__is_active=True)\
-            .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
             .get()
 
-        with transaction.atomic():
-            opportunity = utils.do_reshuffle(previous, opportunity_status)
+        opportunity = utils.do_reshuffle(current, opportunity_status)
 
-            if opportunity:
-                return Response(
-                    data=OpportunitySerializer(instance=opportunity).data, 
-                    status=drf_status.HTTP_200_OK
-                )
-            else:
-                return Response(
-                    data={'error': 'Shuffle could not run.'}, 
-                    status=drf_status.HTTP_406_NOT_ACCEPTABLE
-                )
+        if opportunity:
+            return Response(
+                data=OpportunitySerializer(instance=opportunity).data, 
+                status=drf_status.HTTP_200_OK
+            )
+        else:
+            return Response(
+                data={'error': 'Shuffle could not run.'}, 
+                status=drf_status.HTTP_406_NOT_ACCEPTABLE
+            )
     except Exception as e:
         logging.exception(e)
 
@@ -194,13 +190,14 @@ def accept_shuffle_invite(_, opportunity_id=None):
         opportunity: Opportunity = Opportunity.objects\
             .filter(subscriber__concept__curator__organization__is_active=True)\
             .filter(subscriber__concept__curator__is_active=True)\
+            .filter(subscriber__concept__is_active=True)\
             .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
             .get()
         shuffle = Shuffle.objects\
             .filter(curator__organization__is_active=True)\
             .filter(curator__is_active=True)\
-            .filter(concept=opportunity.co)\
+            .filter(concept=opportunity.subscriber.concept)\
             .filter(shuffle_id=opportunity.shuffle_id)\
             .get()
 
