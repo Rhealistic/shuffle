@@ -108,7 +108,7 @@ def do_shuffle(_, concept_id):
         else:
             return Response(
                 data={'error': 'Shuffle could not run at this time. Possible backlog.'}, 
-                status=drf_status.HTTP_400_BAD_REQUEST
+                status=drf_status.HTTP_406_NOT_ACCEPTABLE
             )
     except Exception as e:
         logging.exception(e)

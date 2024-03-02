@@ -74,7 +74,7 @@ def discover_opportunities(concept: Concept):
     return new_opportunities
 
 def prepare_invite(shuffle: Shuffle, pick: Subscriber):
-    logger.debug(f"prepare_invite({shuffle})")
+    logger.debug(f"prepare_invite({shuffle}, {pick})")
 
     opportunity = Opportunity.objects\
         .filter(subscriber=pick)\
@@ -110,7 +110,7 @@ def do_shuffle(concept: Concept):
             .exists()
         
         if in_progress:
-            logger.error(f"shuffle on concept '{concept}' is in progress")
+            logger.error(f"Shuffle: shuffle on concept '{concept}' is in progress")
             return
         
         try:
@@ -125,10 +125,9 @@ def do_shuffle(concept: Concept):
         shuffle = Shuffle.objects.create(
             concept=concept, 
             start_date=timezone.now(),
-            status=Shuffle.Status.IN_PROGRESS,
             previous_shuffle_id=previous_shuffle.shuffle_id if previous_shuffle else None)
         
-        logger.debug(f"created a new shuffle '{shuffle.shuffle_id}' previous shuffle {shuffle.shuffle_id}")
+        logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}' previous shuffle {shuffle.shuffle_id}")
         
         concept.shuffle_count += 1
         concept.save()
@@ -136,13 +135,20 @@ def do_shuffle(concept: Concept):
         r = 0
         while r < 5:
             pick: Subscriber = pick_performer(concept)
-            pick.selection_count += 1
-            pick.save()
-
-            logger.debug(f"retry - {r}: {pick} has been picked for concept {concept} shuffle")
 
             if pick:
+                logger.debug(f"Shuffle: Retry - {r}: `{pick}` has been picked for concept `{concept}` shuffle")
+                pick.selection_count += 1
+                pick.save()
+                
+                logger.debug(f"Shuffle: `{shuffle}` as moved to status IN_PROGRESS")
+                shuffle.status = Shuffle.Status.IN_PROGRESS
+                shuffle.save()
+
+                logger.debug(f"Shuffle: Sending a performance invite to the `{pick}`")
                 return prepare_invite(shuffle, pick)
+            else:
+                logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
 
             r += 1
 
@@ -170,17 +176,18 @@ def do_reshuffle(current: Opportunity, opportunity_status):
             r = 0
             while r < 5:
                 pick: Subscriber = pick_performer(shuffle.concept)
-                pick.selection_count += 1
-                pick.save()
-                
-                logger.debug(f"retry - {r}: {pick} has been picked for concept {shuffle.concept} shuffle")
 
                 if pick:
+                    logger.debug(f"Reshuffle: retry - {r}: {pick} has been picked for concept {shuffle.concept} shuffle")
+
+                    pick.selection_count += 1
+                    pick.save()
+
                     return prepare_invite(shuffle, pick)
 
                 r += 1
 
-            logger.error(f"Shuffle {shuffle.concept} failed. Did not find an artist in 5 retries")
+            logger.error(f"Reshuffle: Shuffle {shuffle.concept} failed. Did not find an artist in 5 retries")
 
             shuffle.status = Shuffle.Status.FAILED
             shuffle.closed_at = timezone.now()
@@ -224,7 +231,10 @@ def pick_performer(concept: Concept):
                 logger.debug(f"{performed.count()} 'PERFORMED - MORE THAN ONCE' status subscribers found found")
                 pick = performed.order_by(Random()).first()
         
-        logger.debug(f"{pick} picked!")
+        if pick:
+            logger.debug(f"{pick} picked!")
+        else:
+            logger.waring(f"The pick is empty!")
 
         return pick
 
