@@ -32,7 +32,7 @@ def discover_opportunities(concept: Concept):
     new_opportunities = []
 
     for subscriber in subscribers:
-        logger.info("checking subscriber engagement for:", subscriber)
+        logger.info(f"checking subscriber engagement for: {subscriber}")
 
         # Check if subscriber has meets criteria
         #1. Has no pending requests (in the middle of a shuffle)
@@ -62,14 +62,14 @@ def discover_opportunities(concept: Concept):
             )
         
         if not un_engaged.exists():
-            logger.info("potential subscriber has not been engaged recently:", subscriber)
+            logger.info(f"potential subscriber has not been engaged recently: {subscriber}")
 
             new_opportunities.append(
                 Opportunity
                     .objects
                     .create(subscriber=subscriber))
             
-            logger.info("opportunity created for:", subscriber)
+            logger.info(f"opportunity created for: {subscriber}")
             
     return new_opportunities
 
@@ -119,7 +119,7 @@ def do_shuffle(concept: Concept):
                 .filter(closed_at__isnull=False)\
                 .latest('created_at')
         except Shuffle.DoesNotExist as e:
-            logging.exception(e)
+            logging.debug("Shuffle: Previous shuffle not found")
             previous_shuffle = None
         
         shuffle = Shuffle.objects.create(
