@@ -1,5 +1,5 @@
-import random
 import uuid
+import json
 
 from django.db import models
 
@@ -113,3 +113,24 @@ class Shuffle(models.Model):
 
     def __str__(self):
         return f'{str(self.concept)} Shuffle'
+
+
+class Config(models.Model):
+    class ConfigType(models.IntegerChoices):
+        AFRICAS_TALKING_SMS = 0, "Africas Talking SMS"
+
+    config_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
+
+    key = models.CharField(max_length=100)
+    value = models.CharField(max_length=1000)
+
+    type = models.PositiveSmallIntegerField(
+        choices=ConfigType.choices, 
+        default=ConfigType.AFRICAS_TALKING_SMS)
+
+    class Meta:
+        db_table = "system_config"
+
+    def get_value(self):
+        if self.type == self.ConfigType.AFRICAS_TALKING_SMS:
+            return json.loads(self.value)

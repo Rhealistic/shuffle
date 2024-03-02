@@ -1,6 +1,4 @@
-from django.db import transaction
 from django.db.models import Q
-from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -10,11 +8,10 @@ from rest_framework import status as drf_status
 from shuffle.artist.serializers import OpportunitySerializer
 
 from ..artist.models import Opportunity
-
 from . import utils
 from .models import Concept, Shuffle, Organization
 from .serializers import \
-    ShuffleSerializer, OrganizationSerializer, ConceptSerializer
+    SMSSendSerializer, ShuffleSerializer, OrganizationSerializer, ConceptSerializer
 
 import logging
 logger = logging.getLogger(__name__)
@@ -160,6 +157,38 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
             status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR
         )
 
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sms_send(request):
+    serializer = SMSSendSerializer(data=request.data)
+
+    if serializer.is_valid():
+        response = utils.send_sms(serializer.recipients,serializer.message)
+    
+        return Response(
+            data=ShuffleSerializer(data=response).data, 
+            status=drf_status.HTTP_200_OK
+        )
+    else:
+        return Response(
+            data={"error": "Error sending SMS."}, 
+            status=drf_status.HTTP_400_BAD_REQUEST
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sms_delivery(_, shuffle_id=None):
+    shuffle = Shuffle.objects\
+        .filter(curator__organization__is_active=True)\
+        .filter(curator__is_active=True)\
+        .filter(shuffle_id=shuffle_id)\
+        .get()
+    return Response(
+        data=ShuffleSerializer(instance=shuffle).data, 
+        status=drf_status.HTTP_200_OK
+    )
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

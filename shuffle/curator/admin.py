@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Curator, Concept, Shuffle, Organization
+from .models import Config, Curator, Concept, Shuffle, Organization
 
 @admin.register(Organization)
 class OrganizationAdmin(admin.ModelAdmin):
@@ -43,4 +43,13 @@ class ShuffleAdmin(admin.ModelAdmin):
         "concept",
         "status",
         "created_at"
+    ]
+
+@admin.register(Config)
+class ConfigAdmin(admin.ModelAdmin):
+    list_display = [
+        "config_id",
+        "key",
+        "value",
+        "type",
     ]

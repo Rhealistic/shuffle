@@ -1,3 +1,5 @@
+import africastalking
+
 from django.db import transaction
 from django.db import models
 from django.db.models.functions import Random
@@ -8,15 +10,43 @@ from shuffle.artist.utils.discovery import close_opportunity
 
 from shuffle.calendar.models import Event
 from shuffle.curator.models import Concept
+from shuffle.curator.serializers import AFTSMSSerializer
 
 
 from ..artist.models import Opportunity, Subscriber
-from .models import Shuffle
+from .models import Config, Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
 
 days_ago = lambda d: (timezone.now() - timedelta(days=d))
+
+def send_sms(recipients, message):
+    try:
+        config = Config.objects\
+            .filter(type=Config.ConfigType.AFRICAS_TALKING_SMS)\
+            .get()
+        
+        if AFTSMSSerializer(data=config.get_value()).is_valid():
+            africastalking.initialize(
+                config.get_value().get('username'), 
+                config.get_value().get('api_key')
+            )
+            sender = config.get_value().get('sender_id')
+
+            recipients = [recipients]
+            message = message
+
+            response = africastalking.SMS.send(message, recipients, sender)
+            logger.debug(response)
+
+            return response
+        else:
+            logger.error("SMS Config is not valid")
+    except Config.DoesNotExist as e:
+        logger.debug('Encountered an error while sending: %s' % str(e))
+    except Exception as e:
+        logger.debug('Encountered an error while sending: %s' % str(e))
 
 def discover_opportunities(concept: Concept):
     logger.debug(f"discover_opportunities({concept})")
