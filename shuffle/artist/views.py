@@ -28,8 +28,6 @@ logger = logging.getLogger(__name__)
 def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=None):
     artist: Artist = None
     successful = False
-    errors = None
-    context = {}
     form = SubscriptionForm()
     status = drf_status.HTTP_200_OK
 
@@ -61,22 +59,11 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
     except Exception as e:
         logger.exception(e)
 
-        errors = {
-            "errors": "500: Server Error"
-        }
         status = drf_status.HTTP_500_INTERNAL_SERVER_ERROR
 
-        if settings.DEBUG:
-            context["e"] = { 
-                "type": type(e).__name__, 
-                "message": str(e), "args": e.args 
-            }
-            messages.error(request, "ERR: An unexpected error occured")
-    
     return render(request, "add_subscriber.html", {
         "artist": artist,
         "form": form,
-        "errors": errors,
         "successful": successful,
     }, status=status)
 
