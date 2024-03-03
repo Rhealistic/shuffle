@@ -107,21 +107,21 @@ def prepare_invite(shuffle: Shuffle, pick: Subscriber):
 def do_shuffle(concept: Concept):
     logger.debug(f"do_shuffle({concept})")
 
+    in_progress = Shuffle.objects\
+        .filter(concept=concept)\
+        .filter(closed_at__isnull=True)\
+        .exists()
+    
+    if in_progress:
+        logger.error(f"Shuffle: shuffle on concept '{concept}' is already in progress")
+        return
+
     with transaction.atomic():
-        in_progress = Shuffle.objects\
-            .filter(concept=concept)\
-            .filter(closed_at__isnull=True)\
-            .exists()
-        
-        if in_progress:
-            logger.error(f"Shuffle: shuffle on concept '{concept}' is in progress")
-            return
-        
-        logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}'")
-        
         shuffle = Shuffle.objects.create(
             concept=concept, 
             start_date=timezone.now())
+        
+        logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}'")
         
         concept.shuffle_count += 1
         concept.save()
@@ -141,9 +141,8 @@ def do_shuffle(concept: Concept):
 
                 logger.debug(f"Shuffle: Sending a performance invite to the `{pick}`")
                 return prepare_invite(shuffle, pick)
-            else:
-                logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
-
+            
+            logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
             r += 1
 
         shuffle.status = Shuffle.Status.FAILED
@@ -183,10 +182,7 @@ def do_reshuffle(current: Opportunity, opportunity_status):
 
                     return prepare_invite(shuffle, pick)
                 
-                else:
-                    logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
-
-
+                logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
                 r += 1
 
             logger.error(f"Reshuffle: Shuffle {shuffle.concept} failed. Did not find an artist in 5 retries")
