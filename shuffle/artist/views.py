@@ -83,12 +83,19 @@ def get_opportunity_list(_, opportunity_id=None):
 
     if opportunity_id:
         try:
-            opportunity = opportunities.get(concept_id=opportunity_id)
-
-            return Response(
-                data=OpportunitySerializer(instance=opportunity).data, 
-                status=drf_status.HTTP_200_OK
-            )
+            opportunity = opportunities\
+                .get(concept_id=opportunity_id)
+            serializer = OpportunitySerializer(instance=opportunity)
+            if serializer.is_valid():
+                return Response(
+                    data=opportunity, 
+                    status=drf_status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    data=serializer.validated_data, 
+                    status=drf_status
+                )
         except Opportunity.DoesNotExist:
             return Response(
                 data={"error": "Opportunity NOT Found"}, 

@@ -1,5 +1,4 @@
-import africastalking
-
+import requests
 from shuffle.curator.models import Config
 
 from ..models import Artist
@@ -28,17 +27,21 @@ def send_sms(recipient_phone, message):
         if AFTSMSSerializer(data=config.get_value()).is_valid():
             logger.debug("config found with valid credentials")
 
-            africastalking.initialize(
-                config.get_value().get('username'), 
-                config.get_value().get('api_key')
+            response = requests.post(
+                "https://api.africastalking.com/version1/messaging",
+                data={
+                    'username': config.get_value().get('username'), 
+                    'to': recipient_phone,
+                    'from': config.get_value().get('sender_id')
+                },
+                headers={
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'apiKey': config.get_value().get('api_key'),
+                }
             )
-            sender = config.get_value().get('sender_id')
-
-            response = africastalking\
-                .SMS\
-                .send(message, [recipient_phone], sender)
+            
             logger.debug(response)
-
             return response
         else:
             logger.error("SMS Config is not valid")
