@@ -12,15 +12,11 @@ logger = logging.getLogger(__name__)
 def send_signup_sms(artist: Artist):
     logger.debug(f"send_signup_sms({artist.artist_id}, {artist.phone})")
 
-    url = f'https://shuffle.rhealistic.info/v1/artists/{artist.artist_id}/sms/send'
-    payload = {
-        'message': (
-            f'Shuffle! {artist.name}, thank you for signing up. '
-            f'We will communicate via SMS, keep your phone close for opportunities every week.'
-        )
-    }
-    
-    return grequests.map([grequests.post(url, data=payload)])
+    return send_sms(artist.phone, (
+        f'Shuffle! {artist.name}, thank you for signing up. '
+        f'We will communicate via SMS, keep your phone close for opportunities every week.'
+    ))
+
 
 def send_sms(recipient_phone, message):
     logger.debug(f"send_sms({recipient_phone}, {message})")
