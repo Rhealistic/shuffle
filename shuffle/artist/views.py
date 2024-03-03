@@ -7,6 +7,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
+from shuffle.artist.utils.sms import send_signup_sms, send_sms
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
@@ -14,7 +15,7 @@ from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 from .models import Artist, Opportunity, Subscriber
 from .forms import SubscriptionForm, ArtistForm
 from .serializers import \
-    ArtistSerializer, OpportunitySerializer, \
+    ArtistSerializer, OpportunitySerializer, SMSSendSerializer, \
     SubscriberSerializer, SubscriberUpdateSerializer
 
 import logging
@@ -40,7 +41,11 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
             if form.is_valid():
                 logger.info("Subscription form is valid")
 
-                Subscriber.objects.create(concept=concept, artist=form.save())
+                subscriber = Subscriber.objects\
+                    .create(concept=concept, artist=form.save())
+
+                response = send_signup_sms(subscriber.artist)
+                logger.debug(f"Sending SMS: {response}")
                 
                 status = drf_status.HTTP_201_CREATED
                 successful = True
@@ -171,3 +176,60 @@ def go_home(_):
     organization: Organization = curator.organization
     
     return redirect(f'/subscribe/{organization.slug}/{concept.slug}')
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sms_send(request, artist_id):
+    logger.debug("request received: sms_send")
+    logger.debug(request.data)
+
+    try:
+        serializer = SMSSendSerializer(data=request.data)
+        artist = Artist.objects\
+            .filter(artist_id=artist_id)\
+            .get()
+
+        if serializer.is_valid():
+            logger.debug("SMS: Sending sms to recipient")
+            response = send_sms(
+                artist.phone, 
+                serializer.validated_data['message']
+            )
+
+            logger.debug("SMS: send response.")
+            return Response(
+                data=response, 
+                status=drf_status.HTTP_200_OK
+            )
+        else:
+            logger.debug("SMS: Data received is invalid.")
+            logger.debug(serializer.errors)
+
+            return Response(
+                data={
+                    **serializer.errors,
+                    "error": "Error sending SMS.",
+                }, 
+                status=drf_status.HTTP_400_BAD_REQUEST
+            )
+    except Artist.DoesNotExist:
+        return Response(
+                data={
+                    "error": "Error sending SMS.",
+                }, 
+                status=drf_status.HTTP_404_NOT_FOUND
+            )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sms_delivery(request):
+    logger.debug("<SMS DELIVERY>")
+
+    logger.debug(request.data)
+
+    logger.debug("</SMS DELIVERY>")
+    return Response(
+        data={"received": True},
+        status=drf_status.HTTP_200_OK
+    )

@@ -1,3 +1,4 @@
+africastalking==1.2.7
 beautifulsoup4==4.12.2
 Django==4.2.6
 django-bootstrap-v5==1.0.11
@@ -31,5 +32,6 @@ parso==0.8.3
 pexpect==4.8.0
 pickleshare==0.7.5
 requests==2.31.0
+grequests==0.7.0
 
 python-dotenv==1.0.0

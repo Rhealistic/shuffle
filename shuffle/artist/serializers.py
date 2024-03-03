@@ -54,3 +54,12 @@ class SubscriberUpdateSerializer(serializers.ModelSerializer):
             'is_subscribed',
         ]
 
+
+class SMSSendSerializer(serializers.Serializer):
+    message = serializers.CharField(max_length=480)
+
+
+class AFTSMSSerializer(serializers.Serializer):
+    sender_id = serializers.CharField(max_length=50, required=True)
+    api_key = serializers.CharField(max_length=100, required=True)
+    username = serializers.CharField(max_length=15, required=True)
