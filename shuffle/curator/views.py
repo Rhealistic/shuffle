@@ -174,8 +174,9 @@ def sms_send(request):
         )
 
         logger.debug("SMS: send response.")
+
         return Response(
-            data=ShuffleSerializer(data=response).data, 
+            data=response, 
             status=drf_status.HTTP_200_OK
         )
     else:
