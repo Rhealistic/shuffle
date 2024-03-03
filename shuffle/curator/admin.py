@@ -41,7 +41,11 @@ class ShuffleAdmin(admin.ModelAdmin):
     list_display = [
         "shuffle_id",
         "concept",
+        "pick",
+        "retries",
         "status",
+        "start_date",
+        "closed_at",
         "created_at"
     ]
 

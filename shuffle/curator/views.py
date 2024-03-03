@@ -190,12 +190,14 @@ def accept_shuffle_invite(_, opportunity_id=None):
             .filter(subscriber__concept__is_active=True)\
             .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
+            .filter(closed_at__isnull=True)\
             .get()
         shuffle = Shuffle.objects\
             .filter(concept__curator__organization__is_active=True)\
             .filter(concept__curator__is_active=True)\
             .filter(concept=opportunity.subscriber.concept)\
             .filter(shuffle_id=opportunity.shuffle_id)\
+            .filter(closed_at__isnull=True)\
             .get()
 
         if utils.accept_invite(shuffle, opportunity):

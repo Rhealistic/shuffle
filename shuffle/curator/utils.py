@@ -11,7 +11,6 @@ from shuffle.artist.utils.discovery import close_opportunity
 from shuffle.calendar.models import Event
 from shuffle.curator.models import Concept
 
-
 from ..artist.models import Opportunity, Subscriber
 from .models import Shuffle
 
@@ -37,7 +36,7 @@ def discover_opportunities(concept: Concept):
 
         # Check if subscriber has meets criteria
         #1. Has no pending requests (in the middle of a shuffle)
-        #2. Has not peformed on this platform/concept in the past 4 weeks
+        #2. Has not performed on this platform/concept in the past 4 weeks
         #3. Has not skipped an opportunity in the past 2 weeks
         #4. Has not expired an opportunity in the past 4 weeks
         #5. Has not cancelled an event in the past 2 weeks
@@ -45,22 +44,11 @@ def discover_opportunities(concept: Concept):
         un_engaged = subscriber\
             .opportunities\
             .exclude(
-                (
-                    models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
-                ) | 
-                (
-                    models.Q(status=Opportunity.Status.ACCEPTED, subscriber__status=Subscriber.Status.PERFORMED, event__status=Event.Status.SUCCESSFUL, subscriber__last_performance__gte=days_ago(4 * 7)) 
-                ) | 
-                (
-                    models.Q(status=Opportunity.Status.ACCEPTED, event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED, Event.Status.FAILED], closed_at__gte=days_ago(2 * 7))
-                ) | 
-                (
-                    models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
-                ) | 
-                (
-                    models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(2 * 7))
-                )
-            )
+                models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
+                | models.Q(status=Opportunity.Status.ACCEPTED, subscriber__status=Subscriber.Status.PERFORMED, event__status=Event.Status.SUCCESSFUL, subscriber__last_performance__gte=days_ago(4 * 7))
+                | models.Q(status=Opportunity.Status.ACCEPTED, event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED, Event.Status.FAILED], closed_at__gte=days_ago(2 * 7))
+                | models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
+                | models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(2 * 7)))
         
         if not un_engaged.exists():
             logger.info(f"potential subscriber has not been engaged recently: {subscriber}")
