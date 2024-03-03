@@ -1,5 +1,4 @@
 import africastalking
-import grequests
 
 from shuffle.curator.models import Config
 
