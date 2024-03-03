@@ -161,32 +161,38 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def sms_send(request):
+    logger.debug(request.data)
     serializer = SMSSendSerializer(data=request.data)
 
     if serializer.is_valid():
-        response = utils.send_sms(serializer.recipients,serializer.message)
-    
+        logger.debug("SMS: Sending sms to recipient")
+        response = utils.send_sms(serializer.recipients, serializer.message)
+
+        logger.debug("SMS: send response.")
         return Response(
             data=ShuffleSerializer(data=response).data, 
             status=drf_status.HTTP_200_OK
         )
     else:
         return Response(
-            data={"error": "Error sending SMS."}, 
+            data={
+                **serializer.errors,
+                "error": "Error sending SMS.",
+            }, 
             status=drf_status.HTTP_400_BAD_REQUEST
         )
 
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def sms_delivery(_, shuffle_id=None):
-    shuffle = Shuffle.objects\
-        .filter(curator__organization__is_active=True)\
-        .filter(curator__is_active=True)\
-        .filter(shuffle_id=shuffle_id)\
-        .get()
+def sms_delivery(request):
+    logger.debug("<SMS DELIVERY>")
+
+    logger.debug(request.data)
+
+    logger.debug("</SMS DELIVERY>")
     return Response(
-        data=ShuffleSerializer(instance=shuffle).data, 
+        data={"received": True},
         status=drf_status.HTTP_200_OK
     )
 
