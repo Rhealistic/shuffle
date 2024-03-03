@@ -7,6 +7,7 @@ from ..serializers import AFTSMSSerializer
 import logging
 logger = logging.getLogger(__name__)
 
+
 def send_signup_sms(artist: Artist):
     logger.debug(f"send_signup_sms({artist.artist_id}, {artist.phone})")
 
@@ -43,10 +44,11 @@ def send_sms(recipient_phone, message):
             )
             
             logger.debug(response)
-            return response
+            return response.json()
         else:
             logger.error("SMS Config is not valid")
     except Config.DoesNotExist as e:
         logger.debug('Encountered an error while sending: %s' % str(e))
     except Exception as e:
         logger.debug('Encountered an error while sending: %s' % str(e))
+
