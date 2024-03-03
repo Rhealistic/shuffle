@@ -60,10 +60,10 @@ class SMSSendSerializer(serializers.Serializer):
             phone = f"+254{phone[1:]}"
 
         if not is_valid_phone_number(phone):
-            raise serializers.ValidationError("Invalid Safaricom phone Number")
+            raise serializers.ValidationError("Invalid Safaricom phone number")
         
-        if Artist.objects.filter(phone=phone).exists():
-            raise serializers.ValidationError("The phone number is not available")
+        if not Artist.objects.filter(phone=phone).exists():
+            raise serializers.ValidationError("Invalid request number.")
         
         return phone
     

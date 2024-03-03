@@ -161,7 +161,9 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
 @api_view(['POST'])
 @permission_classes([AllowAny])
 def sms_send(request):
+    logger.debug("request received: sms_send")
     logger.debug(request.data)
+
     serializer = SMSSendSerializer(data=request.data)
 
     if serializer.is_valid():
@@ -174,6 +176,9 @@ def sms_send(request):
             status=drf_status.HTTP_200_OK
         )
     else:
+        logger.debug("SMS: Data received is invalid.")
+        logger.debug(serializer.errors)
+
         return Response(
             data={
                 **serializer.errors,
