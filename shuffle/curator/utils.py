@@ -225,7 +225,7 @@ def pick_performer(concept: Concept):
             .filter(status=Subscriber.Status.PERFORMED)
 
         performed_atmost_once = performed\
-            .filter(performance_count_lte=1)
+            .filter(performance_count__lte=1)
 
         if performed_atmost_once.count() > 0:
             logger.debug(f"{performed_atmost_once.count()} 'PERFORMED - ATLEAST ONCE' subscribers found found")
