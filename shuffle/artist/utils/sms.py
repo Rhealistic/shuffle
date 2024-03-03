@@ -21,9 +21,7 @@ def send_signup_sms(artist: Artist):
     }
     
     response = grequests.post(url, data=payload)
-    result = response.send()
-
-    return result.content
+    return grequests.map(response)
 
 def send_sms(recipient_phone, message):
     logger.debug(f"send_sms({recipient_phone}, {message})")
