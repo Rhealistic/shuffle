@@ -168,7 +168,10 @@ def sms_send(request):
 
     if serializer.is_valid():
         logger.debug("SMS: Sending sms to recipient")
-        response = utils.send_sms(serializer.recipients, serializer.message)
+        response = utils.send_sms(
+            serializer.validated_data['recipients'], 
+            serializer.validated_data['message']
+        )
 
         logger.debug("SMS: send response.")
         return Response(
