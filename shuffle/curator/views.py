@@ -7,7 +7,7 @@ from rest_framework import status as drf_status
 
 from shuffle.artist.serializers import OpportunitySerializer
 
-from ..artist.models import Opportunity
+from ..artist.models import Artist, Opportunity
 from . import utils
 from .models import Concept, Shuffle, Organization
 from .serializers import \
@@ -160,37 +160,47 @@ def do_reshuffle(_, opportunity_id=None, opportunity_status=None):
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def sms_send(request):
+def sms_send(request, artist_id):
     logger.debug("request received: sms_send")
     logger.debug(request.data)
 
-    serializer = SMSSendSerializer(data=request.data)
+    try:
+        serializer = SMSSendSerializer(data=request.data)
+        artist = Artist.objects\
+            .filter(artist_id=artist_id)\
+            .get()
 
-    if serializer.is_valid():
-        logger.debug("SMS: Sending sms to recipient")
-        response = utils.send_sms(
-            serializer.validated_data['recipients'], 
-            serializer.validated_data['message']
-        )
+        if serializer.is_valid():
+            logger.debug("SMS: Sending sms to recipient")
+            response = utils.send_sms(
+                artist.phone, 
+                serializer.validated_data['message']
+            )
 
-        logger.debug("SMS: send response.")
+            logger.debug("SMS: send response.")
 
+            return Response(
+                data=response, 
+                status=drf_status.HTTP_200_OK
+            )
+        else:
+            logger.debug("SMS: Data received is invalid.")
+            logger.debug(serializer.errors)
+
+            return Response(
+                data={
+                    **serializer.errors,
+                    "error": "Error sending SMS.",
+                }, 
+                status=drf_status.HTTP_400_BAD_REQUEST
+            )
+    except Artist.DoesNotExist:
         return Response(
-            data=response, 
-            status=drf_status.HTTP_200_OK
-        )
-    else:
-        logger.debug("SMS: Data received is invalid.")
-        logger.debug(serializer.errors)
-
-        return Response(
-            data={
-                **serializer.errors,
-                "error": "Error sending SMS.",
-            }, 
-            status=drf_status.HTTP_400_BAD_REQUEST
-        )
-
+                data={
+                    "error": "Error sending SMS.",
+                }, 
+                status=drf_status.HTTP_404_NOT_FOUND
+            )
 
 @api_view(['POST'])
 @permission_classes([AllowAny])

@@ -17,6 +17,6 @@ urlpatterns = [
     path("v1/opportunity/<uuid:opportunity_id>/shuffle/skip", views.do_reshuffle, {'opportunity_status': Opportunity.Status.SKIP}),
     path("v1/shuffle/<uuid:shuffle_id>", views.get_shuffle),
 
-    path("v1/notification/send", views.sms_send),
-    path("v1/notification/delivery", views.sms_delivery),
+    path("v1/artists/<uuid:artist_id>/sms/send", views.sms_send),
+    path("v1/notifications/sms/delivery", views.sms_delivery),
 ]

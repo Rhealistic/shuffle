@@ -21,8 +21,8 @@ logger = logging.getLogger(__name__)
 
 days_ago = lambda d: (timezone.now() - timedelta(days=d))
 
-def send_sms(recipients, message):
-    logger.debug(f"send_sms({recipients}, {message})")
+def send_sms(recipient_phone, message):
+    logger.debug(f"send_sms({recipient_phone}, {message})")
     
     try:
         config = Config.objects\
@@ -40,7 +40,7 @@ def send_sms(recipients, message):
 
             response = africastalking\
                 .SMS\
-                .send(message, [recipients], sender)
+                .send(message, [recipient_phone], sender)
             logger.debug(response)
 
             return response

@@ -52,20 +52,7 @@ class ShuffleInputSerializer(serializers.ModelSerializer):
     
 
 class SMSSendSerializer(serializers.Serializer):
-    recipients = serializers.CharField(max_length=15)
     message = serializers.CharField(max_length=480)
-
-    def validate_recipients(self, phone):
-        if phone.startswith("0"):
-            phone = f"+254{phone[1:]}"
-
-        if not is_valid_phone_number(phone):
-            raise serializers.ValidationError("Invalid Safaricom phone number")
-        
-        if not Artist.objects.filter(phone=phone).exists():
-            raise serializers.ValidationError("Invalid request number.")
-        
-        return phone
     
 class AFTSMSSerializer(serializers.Serializer):
     sender_id = serializers.CharField(max_length=50, required=True)
