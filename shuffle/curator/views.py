@@ -192,8 +192,8 @@ def accept_shuffle_invite(_, opportunity_id=None):
             .filter(opportunity_id=opportunity_id)\
             .get()
         shuffle = Shuffle.objects\
-            .filter(curator__organization__is_active=True)\
-            .filter(curator__is_active=True)\
+            .filter(concept__curator__organization__is_active=True)\
+            .filter(concept__curator__is_active=True)\
             .filter(concept=opportunity.subscriber.concept)\
             .filter(shuffle_id=opportunity.shuffle_id)\
             .get()
