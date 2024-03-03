@@ -32,7 +32,8 @@ def send_sms(recipient_phone, message):
                 data={
                     'username': config.get_value().get('username'), 
                     'to': recipient_phone,
-                    'from': config.get_value().get('sender_id')
+                    'from': config.get_value().get('sender_id'),
+                    'message': message
                 },
                 headers={
                     'Accept': 'application/json',
