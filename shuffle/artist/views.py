@@ -5,6 +5,7 @@ from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.utils import timezone
+import requests
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -296,6 +297,8 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
                         opportunity.notes_to_curator = form.notes_to_curator
                         opportunity.save(update_fields=['notes_to_curator'])
 
+                        complete_shuffle(opportunity, 'accept')
+
                         organization: Organization = opportunity.subscriber.concept.curator.organization
                         return redirect(organization.website)
                     else:
@@ -311,6 +314,8 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
                         opportunity.reject_reason = form.reason
                         opportunity.notes_to_curator = form.notes_to_curator
                         opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+
+                        complete_shuffle(opportunity, 'skip')
 
                         organization: Organization = opportunity.subscriber.concept.curator.organization
                         return redirect(organization.website)
@@ -332,3 +337,22 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
         logger.exception(e)
 
         return HttpResponseServerError()
+
+
+def complete_shuffle(opportunity: Opportunity, action):
+    logger.debug(f"complete_shuffle({opportunity}, {action})")
+
+    response = requests.post(
+        "https://cloud.activepieces.com/api/v1/webhooks/yPISHIsxmrmpyurIUIRON",
+        data={
+            "action": action,
+            "opportunity_id": opportunity.opportunity_id
+        },
+        headers={
+            'Accept': 'application/json',
+            'Content-Type': 'application/json',
+        }
+    )
+    
+    logger.debug(response)
+    return response.json()

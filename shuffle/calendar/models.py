@@ -13,7 +13,7 @@ class Event(models.Model):
         FAILED = 4, 'Failed'
 
     event_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
-
+    
     title = models.CharField(max_length=100, null=True, blank=True)
     
     start = models.DateTimeField()
