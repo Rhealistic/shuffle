@@ -1,6 +1,7 @@
 from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
+from django.db import transaction
 from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
@@ -293,16 +294,17 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
                 form: ApproveOpportunityForm = ApproveOpportunityForm(request.POST)
 
                 if form.is_valid():
-                    if accept_invite(shuffle, opportunity):
-                        opportunity.notes_to_curator = form.notes_to_curator
-                        opportunity.save(update_fields=['notes_to_curator'])
+                    with transaction.atomic():
+                        if accept_invite(shuffle, opportunity):
+                            opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
+                            opportunity.save(update_fields=['notes_to_curator'])
 
-                        complete_shuffle(opportunity, 'accept')
+                            complete_shuffle(opportunity, 'accept')
 
-                        organization: Organization = opportunity.subscriber.concept.curator.organization
-                        return redirect(organization.website)
-                    else:
-                        return HttpResponseBadRequest()
+                            organization: Organization = opportunity.subscriber.concept.curator.organization
+                            return redirect(organization.website)
+                        else:
+                            return HttpResponseBadRequest()
             else:
                 form: ApproveOpportunityForm = ApproveOpportunityForm()
         elif action == Opportunity.Status.SKIP:
@@ -311,14 +313,15 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                 if form.is_valid():
                     if skip_invite(shuffle, opportunity):
-                        opportunity.reject_reason = form.reason
-                        opportunity.notes_to_curator = form.notes_to_curator
-                        opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+                        with transaction.atomic():
+                            opportunity.reject_reason = form.cleaned_data['reason']
+                            opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
+                            opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
 
-                        complete_shuffle(opportunity, 'skip')
+                            complete_shuffle(opportunity, 'skip')
 
-                        organization: Organization = opportunity.subscriber.concept.curator.organization
-                        return redirect(organization.website)
+                            organization: Organization = opportunity.subscriber.concept.curator.organization
+                            return redirect(organization.website)
                     else:
                         return HttpResponseBadRequest()
             else:

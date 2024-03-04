@@ -22,7 +22,8 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
         if status == Opportunity.Status.ACCEPTED:
             logger.debug(f"status ACCEPTED")
 
-            concept: Concept = opportunity.subscriber.concept
+            subscriber: Subscriber = opportunity.subscriber
+            concept: Concept = subscriber.concept
             
             event_dates = get_concept_event_dates(concept)
             for event_date in event_dates:
@@ -34,14 +35,19 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
                 opportunity.save(update_fields=['event'])
                 opportunity.refresh_from_db()
 
-                return Subscriber.objects\
-                    .filter(id=opportunity.subscriber_id)\
-                    .update(
-                        acceptance_count=models.F('acceptance_count') + 1,
-                        last_performance=models.F('next_performance'),
-                        next_performance=event_date,
-                        status=Subscriber.Status.NEXT_PERFORMING
-                    )
+                subscriber.acceptance_count = models.F('acceptance_count') + 1
+                subscriber.last_performance = models.F('next_performance')
+                subscriber.next_performance = event_date
+                subscriber.status = Subscriber.Status.NEXT_PERFORMING
+                subscriber.save(update_fields=[
+                    'acceptance_count',
+                    'last_performance',
+                    'next_performance',
+                    'status',
+                ])
+
+                return True
+
         elif status == Opportunity.Status.EXPIRED:
             logger.debug(f"status EXPIRED")
 
