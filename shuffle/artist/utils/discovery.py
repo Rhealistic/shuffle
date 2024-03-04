@@ -1,7 +1,7 @@
 from django.db import models
 from django.utils import timezone
 from shuffle.calendar.models import Event
-from shuffle.calendar.utils import get_next_date_day_of_week
+from shuffle.calendar.utils import get_concept_event_dates, get_next_date_day_of_week
 
 from shuffle.curator.models import Concept
 
@@ -24,6 +24,8 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
 
             event_date = get_next_date_day_of_week(concept.day_of_week or 'friday')
             concept: Concept = opportunity.subscriber.concept
+
+            event_dates = get_concept_event_dates(concept)
             opportunity.event = Event.objects.create(
                 title=f"{opportunity.subscriber.artist.name} performs at {concept.title}",
                 # start=

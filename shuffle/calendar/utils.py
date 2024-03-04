@@ -20,7 +20,7 @@ def get_concept_event_dates(concept: Concept):
             start_date, 
             concept.start_time, 
             concept.end_time,
-            4
+            1
         )
 
 def get_weekly_event_times(start_date=None, start_time=None, end_time=None, no_of_weeks=1):
