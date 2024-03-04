@@ -1,4 +1,5 @@
 from datetime import timedelta
+from django.db import transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -203,16 +204,17 @@ def accept_shuffle_invite(_, opportunity_id=None):
             .filter(closed_at__isnull=True)\
             .get()
 
-        if utils.accept_invite(shuffle, opportunity):
-            return Response(
-                data=ShuffleSerializer(instance=shuffle).data, 
-                status=drf_status.HTTP_200_OK
-            )
-        else:
-            return Response(
-                data=ShuffleSerializer(instance=shuffle).data, 
-                status=drf_status.HTTP_200_OK
-            )
+        with transaction.atomic():
+            if utils.accept_invite(shuffle, opportunity):
+                return Response(
+                    data=ShuffleSerializer(instance=shuffle).data, 
+                    status=drf_status.HTTP_200_OK
+                )
+            else:
+                return Response(
+                    data=ShuffleSerializer(instance=shuffle).data, 
+                    status=drf_status.HTTP_200_OK
+                )
         
     except Exception as e:
         logging.exception(e)

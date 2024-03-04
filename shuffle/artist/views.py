@@ -312,8 +312,8 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
                 form: RejectOpportunityForm = RejectOpportunityForm(request.POST)
 
                 if form.is_valid():
-                    if skip_invite(shuffle, opportunity):
-                        with transaction.atomic():
+                    with transaction.atomic():
+                        if skip_invite(shuffle, opportunity):
                             opportunity.reject_reason = form.cleaned_data['reason']
                             opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
                             opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
@@ -322,8 +322,8 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                             organization: Organization = opportunity.subscriber.concept.curator.organization
                             return redirect(organization.website)
-                    else:
-                        return HttpResponseBadRequest()
+                        else:
+                            return HttpResponseBadRequest()
             else:
                 form = RejectOpportunityForm()
         
