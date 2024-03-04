@@ -1,5 +1,7 @@
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
+from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
 
 from rest_framework.decorators import api_view, permission_classes
@@ -11,9 +13,10 @@ from shuffle.artist.utils.sms import send_signup_sms, send_sms
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
+from shuffle.curator.utils import accept_invite, skip_invite
 
 from .models import Artist, Opportunity, Subscriber
-from .forms import SubscriptionForm, ArtistForm
+from .forms import ApproveOpportunityForm, RejectOpportunityForm, SubscriptionForm, ArtistForm
 from .serializers import \
     ArtistSerializer, OpportunitySerializer, SMSSendSerializer, \
     SubscriberSerializer, SubscriberUpdateSerializer
@@ -84,23 +87,23 @@ def get_opportunity_list(_, opportunity_id=None):
     if opportunity_id:
         try:
             opportunity = opportunities\
-                .get(concept_id=opportunity_id)
+                .get(opportunity_id=opportunity_id)
             serializer = OpportunitySerializer(instance=opportunity)
             if serializer.is_valid():
                 return Response(
-                    data=opportunity, 
+                    data=serializer.validated_data, 
                     status=drf_status.HTTP_200_OK
                 )
             else:
                 return Response(
-                    data=serializer.validated_data, 
-                    status=drf_status
+                    data=serializer.errors,
+                    status=drf_status.HTTP_400_BAD_REQUEST
                 )
         except Opportunity.DoesNotExist:
             return Response(
                 data={"error": "Opportunity NOT Found"}, 
                 status=drf_status.HTTP_404_NOT_FOUND)
-        
+
     return Response(
         data=OpportunitySerializer(opportunities, many=True).data,
         status=drf_status.HTTP_200_OK
@@ -267,3 +270,69 @@ def sms_optin(request):
         data={"received": True},
         status=drf_status.HTTP_200_OK
     )
+
+@api_view(["GET", "POST"])
+@permission_classes([AllowAny])
+def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Status=None):
+    
+    try:
+        opportunity: Opportunity = Opportunity.objects\
+            .filter(subscriber__concept__curator__organization__is_active=True)\
+            .filter(subscriber__concept__curator__is_active=True)\
+            .filter(subscriber__concept__is_active=True)\
+            .filter(subscriber__is_subscribed=True)\
+            .filter(opportunity_id=opportunity_id)\
+            .filter(closed_at__isnull=True)\
+            .get()
+        shuffle = Shuffle.objects\
+            .filter(concept=opportunity.subscriber.concept)\
+            .filter(shuffle_id=opportunity.shuffle_id)\
+            .filter(closed_at__isnull=True)\
+            .get()
+
+
+        if action == Opportunity.Status.ACCEPTED:
+            if request.method == "POST":
+                form: ApproveOpportunityForm = ApproveOpportunityForm(request.POST)
+
+                if form.is_valid():
+                    if accept_invite(shuffle, opportunity):
+                        opportunity.notes_to_curator = form.notes_to_curator
+                        opportunity.save(update_fields=['notes_to_curator'])
+
+                        organization: Organization = opportunity.subscriber.concept.curator.organization
+                        return redirect(organization.website)
+                    else:
+                        return HttpResponseBadRequest()
+            else:
+                form: ApproveOpportunityForm = ApproveOpportunityForm()
+        elif action == Opportunity.Status.SKIP:
+            if request.method == "POST":
+                form: RejectOpportunityForm = RejectOpportunityForm(request.POST)
+
+                if form.is_valid():
+                    if skip_invite(shuffle, opportunity):
+                        opportunity.reject_reason = form.reason
+                        opportunity.notes_to_curator = form.notes_to_curator
+                        opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+
+                        organization: Organization = opportunity.subscriber.concept.curator.organization
+                        return redirect(organization.website)
+                    else:
+                        return HttpResponseBadRequest()
+            else:
+                form = RejectOpportunityForm()
+        
+        return render(request, "approval.html", {
+            'opportunity': opportunity,
+            'action': action,
+            'form': form
+        })
+    except ObjectDoesNotExist as e:
+        logger.exception(e)
+
+        return HttpResponseNotFound()
+    except Exception as e:
+        logger.exception(e)
+
+        return HttpResponseServerError()

@@ -14,20 +14,21 @@ def get_next_day_of_week(day_of_week):
     logger.debug(f"get_next_day_of_week({day_of_week})")
 
     days_mapping = {
-        'monday': 0,
-        'tuesday': 1,
-        'wednesday': 2,
-        'thursday': 3,
-        'friday': 4,
-        'saturday': 5,
-        'sunday': 6
+        'sunday': 0,
+        'monday': 1,
+        'tuesday': 2,
+        'wednesday': 3,
+        'thursday': 4,
+        'friday': 5,
+        'saturday': 6,
     }
 
+    day = day_of_week
     if isinstance(day_of_week, str):
-        day_of_week = day_of_week.lower()
+        day = days_mapping[day_of_week.lower()]
 
     today = datetime.today()
-    days_until_next_day = (days_mapping[day_of_week] - today.weekday() + 7) % 7
+    days_until_next_day = (day - today.weekday() + 7) % 7
     next_day = today + timedelta(days=days_until_next_day)
 
     logger.debug(f"next_day({next_day})")
@@ -40,8 +41,7 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
     if status in [Opportunity.Status.ACCEPTED, Opportunity.Status.SKIP, Opportunity.Status.EXPIRED]:
         opportunity.status = status
         opportunity.closed_at = timezone.now()
-        opportunity.save()
-
+        opportunity.save(update_fields=['status', 'closed_at'])
 
         if status == Opportunity.Status.ACCEPTED:
             logger.debug(f"status ACCEPTED")

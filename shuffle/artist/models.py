@@ -82,6 +82,13 @@ class Opportunity(models.Model):
         SKIP = 3, 'Skipped'
         EXPIRED = 4, 'Expired'
 
+    class RejectReason(models.IntegerChoices):
+        NONE = 0, '------'
+        UNAVAILABLE = 1, 'Pending'
+        RESCHEDULE = 2, 'Reschedule'
+        BUSY = 3, 'Busy'
+        PASS = 4, 'Pass'
+
     opportunity_id = models.UUIDField(default= uuid.uuid4)
     shuffle_id = models.UUIDField(null=True, blank=True)
     
@@ -91,6 +98,9 @@ class Opportunity(models.Model):
         related_name='concept_opportunities', related_query_name='concept_opportunity')
     
     status = models.PositiveSmallIntegerField(choices=Status.choices, null=True, default=Status.PENDING)
+
+    notes_to_curator = models.CharField(max_length=250, null=True)
+    reject_reason = models.PositiveSmallIntegerField(choices=RejectReason.choices, null=True, default=RejectReason.NONE)
 
     sent_at = models.DateTimeField(blank=True, null=True)
     closed_at = models.DateTimeField(blank=True, null=True)

@@ -2,7 +2,8 @@ from django import forms
 
 from shuffle.core.utils.helpers import is_valid_phone_number
 
-from .models import Artist
+from .models import Artist, Opportunity
+
 
 class SubscriptionForm(forms.ModelForm):
     class Meta:
@@ -34,6 +35,7 @@ class SubscriptionForm(forms.ModelForm):
         
         return phone
 
+
 class ArtistForm(forms.ModelForm):
     class Meta:
         model = Artist
@@ -60,6 +62,33 @@ class ArtistForm(forms.ModelForm):
         self.fields['instagram'].required = False
         self.fields['country'].required = False
 
-class SearchImageForm(forms.Form):
-    query = forms.CharField(max_length=150, required=True)
-    chosen = forms.CharField(max_length=500, required=False)
+
+class ApproveOpportunityForm(forms.Form):
+    notes_to_curator = forms.CharField(
+        label="Notes to curator (optional)",
+        required=False,
+        max_length=250,
+        widget=forms.Textarea(attrs={
+            "class": "special", 
+            "placeholder": (
+                "Any special notes to the curator on what Santuri gear "
+                "you are interested in. Please note, you can bring your own gear."
+            ),
+            "rows": "5"
+        }))
+    
+class RejectOpportunityForm(forms.Form):
+    reason = forms.ChoiceField(
+        label="Reason (optional)",
+        choices=Opportunity.RejectReason.choices)
+    notes_to_curator = forms.CharField(
+        label="Notes to curator (optional)",
+        required=False,
+        max_length=250,
+        widget=forms.Textarea(attrs={
+            "class": "special", 
+            "placeholder": (
+                "You can give a small note of apology as a reason for the skipping of the opportunity."
+            ),
+            "rows": "5"
+        }))

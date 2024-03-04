@@ -234,3 +234,10 @@ def accept_invite(shuffle, opportunity):
         shuffle.status = Shuffle.Status.COMPLETE
         shuffle.closed_at = timezone.now()
         shuffle.save()
+
+
+def skip_invite(shuffle, opportunity):
+    logger.debug(f"skip_invite({shuffle}, {opportunity})")
+
+    return close_opportunity(opportunity, Opportunity.Status.SKIP)
+

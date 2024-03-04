@@ -13,6 +13,8 @@ class Organization(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=30)
     logo = models.URLField(max_length=500, null=True, blank=True)
+    
+    website = models.URLField(max_length=150, null=True, blank=True)
 
     is_active = models.BooleanField(default=True, null=True)
 
@@ -106,7 +108,7 @@ class Shuffle(models.Model):
 
     retries = models.PositiveSmallIntegerField(default=0)
     start_date  = models.DateTimeField(null=True)
-    closed_at   = models.DateTimeField(null=True)
+    closed_at   = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)
