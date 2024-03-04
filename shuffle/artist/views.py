@@ -346,13 +346,9 @@ def complete_shuffle(opportunity: Opportunity, action):
 
     response = requests.post(
         config.value,
-        data={
-            "action": action,
-            "opportunity_id": opportunity.opportunity_id
-        },
-        headers={
-            'Accept': 'application/json',
-            'Content-Type': 'application/json',
+        json={
+            'action': action,
+            'opportunity_id': opportunity.opportunity_id
         }
     )
     
