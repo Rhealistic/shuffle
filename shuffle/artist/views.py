@@ -240,3 +240,30 @@ def sms_delivery(request):
         data={"received": True},
         status=drf_status.HTTP_200_OK
     )
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sms_optout(request):
+    logger.debug("<SMS OPT OUT>")
+
+    logger.debug(request.data)
+
+    logger.debug("</SMS OPT OUT>")
+    return Response(
+        data={"received": True},
+        status=drf_status.HTTP_200_OK
+    )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def sms_optin(request):
+    logger.debug("<SMS OPT IN>")
+
+    logger.debug(request.data)
+
+    logger.debug("</SMS OPT IN>")
+    return Response(
+        data={"received": True},
+        status=drf_status.HTTP_200_OK
+    )

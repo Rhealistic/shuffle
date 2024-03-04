@@ -13,6 +13,8 @@ api = [
     path("v1/artists/<uuid:artist_id>", views.artist_view),
     path("v1/artists/<uuid:artist_id>/sms/send", views.sms_send),
     path("v1/notifications/sms/delivery", views.sms_delivery),
+    path("v1/notifications/sms/optout", views.sms_optout),
+    path("v1/notifications/sms/optin", views.sms_optin),
 ]
 
 web = [
