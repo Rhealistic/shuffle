@@ -341,7 +341,7 @@ def complete_shuffle(opportunity: Opportunity, action):
 
     config = Config.objects\
         .filter(type=Config.ConfigType.ACTIVEPIECES_WEBHOOK)\
-        .filter(name="APPROVAL_URL")\
+        .filter(key="APPROVAL_URL")\
         .get()
 
     response = requests.post(
