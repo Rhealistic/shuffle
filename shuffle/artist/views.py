@@ -348,7 +348,7 @@ def complete_shuffle(opportunity: Opportunity, action):
         config.value,
         json={
             'action': action,
-            'opportunity_id': opportunity.opportunity_id
+            'opportunity_id': opportunity.opportunity_id.hex
         }
     )
     
