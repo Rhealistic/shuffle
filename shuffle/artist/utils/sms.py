@@ -23,6 +23,7 @@ def send_sms(recipient_phone, message):
     try:
         config = Config.objects\
             .filter(type=Config.ConfigType.AFRICAS_TALKING_SMS)\
+            .filter(name="CREDENTIALS")\
             .get()
         
         if AFTSMSSerializer(data=config.get_value()).is_valid():

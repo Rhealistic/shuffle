@@ -16,7 +16,7 @@ from rest_framework import status as drf_status
 from shuffle.artist.utils.sms import send_signup_sms, send_sms
 
 from shuffle.core.utils import json
-from shuffle.curator.models import Concept, Curator, Organization, Shuffle
+from shuffle.curator.models import Concept, Config, Curator, Organization, Shuffle
 from shuffle.curator.utils import accept_invite, skip_invite
 
 from .models import Artist, Opportunity, Subscriber
@@ -339,8 +339,13 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 def complete_shuffle(opportunity: Opportunity, action):
     logger.debug(f"complete_shuffle({opportunity}, {action})")
 
+    config = Config.objects\
+        .filter(type=Config.ConfigType.ACTIVEPIECES_WEBHOOK)\
+        .filter(name="APPROVAL_URL")\
+        .get()
+
     response = requests.post(
-        "https://cloud.activepieces.com/api/v1/webhooks/yPISHIsxmrmpyurIUIRON",
+        config.value,
         data={
             "action": action,
             "opportunity_id": opportunity.opportunity_id
@@ -351,5 +356,7 @@ def complete_shuffle(opportunity: Opportunity, action):
         }
     )
     
+    logger.debug("response")
     logger.debug(response)
+    logger.debug(response.content)
     return response.json()
