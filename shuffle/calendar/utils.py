@@ -9,7 +9,7 @@ logger = logging.getLogger(__name__)
 def days_ago(d):
     return (timezone.now() - datetime.timedelta(days=d))
 
-def get_concept_event_dates(concept: Concept):
+def get_concept_event_dates(concept: Concept, limit=1):
     if concept.is_recurring and concept.recurrence_type == Concept.RecurrenceType.WEEKLY:
         if concept.start_date is None:
             start_date = get_next_date_day_of_week(concept.day_of_week)
@@ -20,7 +20,7 @@ def get_concept_event_dates(concept: Concept):
             start_date, 
             concept.start_time, 
             concept.end_time,
-            1
+            limit
         )
 
 def get_weekly_event_times(start_date=None, start_time=None, end_time=None, no_of_weeks=1):
@@ -48,7 +48,7 @@ def get_weekly_event_times(start_date=None, start_time=None, end_time=None, no_o
 
         current_date += datetime.timedelta(days=7)
 
-    logger.debug(f"{ranges}")
+    logger.debug(f"ranges={ranges}")
     
     return ranges
 
