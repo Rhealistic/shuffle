@@ -295,16 +295,13 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                 if form.is_valid():
                     with transaction.atomic():
-                        if accept_invite(shuffle, opportunity):
-                            opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
-                            opportunity.save(update_fields=['notes_to_curator'])
+                        opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
+                        opportunity.save(update_fields=['notes_to_curator'])
 
-                            complete_shuffle(opportunity, 'accept')
+                        complete_shuffle(opportunity, 'accept')
 
-                            organization: Organization = opportunity.subscriber.concept.curator.organization
-                            return redirect(organization.website)
-                        else:
-                            return HttpResponseBadRequest()
+                        organization: Organization = opportunity.subscriber.concept.curator.organization
+                        return redirect(organization.website)
             else:
                 form: ApproveOpportunityForm = ApproveOpportunityForm()
         elif action == Opportunity.Status.SKIP:
@@ -313,17 +310,14 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                 if form.is_valid():
                     with transaction.atomic():
-                        if skip_invite(shuffle, opportunity):
-                            opportunity.reject_reason = form.cleaned_data['reason']
-                            opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
-                            opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+                        opportunity.reject_reason = form.cleaned_data['reason']
+                        opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
+                        opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
 
-                            complete_shuffle(opportunity, 'skip')
+                        complete_shuffle(opportunity, 'skip')
 
-                            organization: Organization = opportunity.subscriber.concept.curator.organization
-                            return redirect(organization.website)
-                        else:
-                            return HttpResponseBadRequest()
+                        organization: Organization = opportunity.subscriber.concept.curator.organization
+                        return redirect(organization.website)
             else:
                 form = RejectOpportunityForm()
         
