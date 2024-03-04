@@ -132,6 +132,7 @@ class Shuffle(models.Model):
 class Config(models.Model):
     class ConfigType(models.IntegerChoices):
         AFRICAS_TALKING_SMS = 0, "Africas Talking SMS"
+        ACTIVEPIECES_WEBHOOK = 1, "Activepieces Webhook"
 
     config_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
 
