@@ -1,23 +1,19 @@
-import africastalking
-
 from django.db import transaction
 from django.db import models
 from django.db.models.functions import Random
 
 from django.utils import timezone
-from datetime import timedelta
 from shuffle.artist.utils.discovery import close_opportunity
 
 from shuffle.calendar.models import Event
 from shuffle.curator.models import Concept
+from shuffle.calendar.utils import days_ago
 
 from ..artist.models import Opportunity, Subscriber
 from .models import Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
-
-days_ago = lambda d: (timezone.now() - timedelta(days=d))
 
 def discover_opportunities(concept: Concept):
     logger.debug(f"discover_opportunities({concept})")
@@ -240,4 +236,3 @@ def skip_invite(shuffle, opportunity):
     logger.debug(f"skip_invite({shuffle}, {opportunity})")
 
     return close_opportunity(opportunity, Opportunity.Status.SKIP)
-

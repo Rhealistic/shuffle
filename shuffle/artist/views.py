@@ -1,8 +1,10 @@
+from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.http import HttpResponseBadRequest, HttpResponseServerError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
+from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -275,6 +277,7 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
             .filter(subscriber__concept__is_active=True)\
             .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
+            .filter(sent_at__gte=timezone.now() - timedelta(hours=24))\
             .filter(closed_at__isnull=True)\
             .get()
         shuffle = Shuffle.objects\

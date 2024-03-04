@@ -5,10 +5,11 @@ from .models import Artist, Opportunity, Subscriber
 @admin.register(Artist)
 class ArtistAdmin(admin.ModelAdmin):
     list_display = [
-        "name",
         "artist_id",
+        "name",
         "email",
         "phone",
+        "country",
         "instagram",
     ]
 

@@ -129,10 +129,10 @@
             <div class="pt-5">
                 <h1 class="header white smaller">
                     {% if action == 2 %}
-                        Accept Invitation
+                        {{ opportunity.concept.title }} - Accept Invitation
                     {% endif %}
                     {% if action == 3 %}
-                        Skip Invitation
+                        {{ opportunity.concept.title }} - Skip Invitation
                     {% endif %}
                 </h1>
                 

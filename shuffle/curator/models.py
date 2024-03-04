@@ -2,7 +2,7 @@ import uuid
 import json
 
 from django.db import models
-
+from django.utils import timezone
 
 class Organization(models.Model):
     name = models.CharField(max_length=100)
@@ -47,19 +47,24 @@ class Curator(models.Model):
 
 
 class Concept(models.Model):
+    class EndType(models.IntegerChoices):
+        NEVER = 0, "Never"
+        N_OCCURRENCES = 1, "After N Occurrences"
+        END_DATE = 2, "End Date"
+
     class RecurrenceType(models.IntegerChoices):
         DAILY = 0, "Daily"
         WEEKLY = 1, "Weekly"
         MONTHLY = 2, "Monthly"
 
     class DayOfWeek(models.IntegerChoices):
-        SUNDAY = 0, "Sunday"
-        MONDAY = 1, "Monday"
-        TUESDAY = 2, "Tuesday"
-        WEDNESDAY = 3, "Wednesday"
-        THURSDAY = 4, "Thursday"
-        FRIDAY = 5, "Friday"
-        SATURDAY = 6, "Saturday"
+        MONDAY = 0, "Monday"
+        TUESDAY = 1, "Tuesday"
+        WEDNESDAY = 2, "Wednesday"
+        THURSDAY = 3, "Thursday"
+        FRIDAY = 4, "Friday"
+        SATURDAY = 5, "Saturday"
+        SUNDAY = 6, "Sunday"
 
     concept_id = models.UUIDField(max_length=30, default = uuid.uuid4)
     curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
@@ -73,8 +78,10 @@ class Concept(models.Model):
     times_per_week = models.PositiveSmallIntegerField(blank=True, null=True)
     times_per_month = models.PositiveSmallIntegerField(blank=True, null=True)
     day_of_week = models.PositiveSmallIntegerField(choices=DayOfWeek.choices, null=True, blank=True)
+    end_type = models.PositiveSmallIntegerField(choices=EndType.choices, default=EndType.NEVER, null=True, blank=True)
 
     start_date = models.DateField(null=True, blank=True)
+    end_date = models.DateField(null=True, blank=True)
     start_time = models.TimeField(null=True, blank=True)
     end_time = models.TimeField(null=True, blank=True)
 
@@ -88,7 +95,12 @@ class Concept(models.Model):
 
     def __str__(self):
         return self.title
-
+    
+    def next_event_timing(self):
+        return {
+            'start': (self.start_date or timezone.now().date()),
+            'end': (self.start_date or timezone.now().date()),
+        }
 
 class Shuffle(models.Model):
 

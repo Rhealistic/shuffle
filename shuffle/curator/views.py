@@ -1,4 +1,6 @@
+from datetime import timedelta
 from django.db.models import Q
+from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -186,6 +188,7 @@ def accept_shuffle_invite(_, opportunity_id=None):
     try:
         opportunity: Opportunity = Opportunity.objects\
             .filter(subscriber__concept__curator__organization__is_active=True)\
+            .filter(sent_at__gte=timezone.now() - timedelta(hours=24))\
             .filter(subscriber__concept__curator__is_active=True)\
             .filter(subscriber__concept__is_active=True)\
             .filter(subscriber__is_subscribed=True)\

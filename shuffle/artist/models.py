@@ -100,7 +100,7 @@ class Opportunity(models.Model):
     status = models.PositiveSmallIntegerField(choices=Status.choices, null=True, default=Status.PENDING)
 
     notes_to_curator = models.CharField(max_length=250, null=True)
-    reject_reason = models.PositiveSmallIntegerField(choices=RejectReason.choices, null=True, default=RejectReason.NONE)
+    reject_reason = models.PositiveSmallIntegerField(choices=RejectReason.choices, null=True)
 
     sent_at = models.DateTimeField(blank=True, null=True)
     closed_at = models.DateTimeField(blank=True, null=True)
