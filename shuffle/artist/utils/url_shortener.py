@@ -18,19 +18,21 @@ def shorten_url(url):
         if ShortgyConfigSerializer(data=credentials).is_valid():
             logger.debug("config found with valid credentials")
 
-            response = requests.post(
-                "https://api.short.io/links",
-                json={
-                    "domain": credentials.get('domain'),
-                    "originalURL": url
-                },
-                headers={
-                    'Authorization': credentials.get('api_key'),
-                }
-            )
+            response = requests\
+                .post(
+                    "https://api.short.io/links",
+                    json={
+                        "domain": credentials.get('domain'),
+                        "originalURL": url
+                    },
+                    headers={
+                        'Authorization': credentials.get('api_key'),
+                    }
+                )\
+                .json()
             
             logger.debug(response)
-            return response.json()
+            return response.get('secureShortURL') or response.get('shortURL')
         else:
             logger.error("Config is not valid")
     except Config.DoesNotExist as e:

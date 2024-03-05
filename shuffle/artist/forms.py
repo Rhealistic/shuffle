@@ -51,17 +51,6 @@ class ArtistForm(forms.ModelForm):
             'country',
         ]
 
-    def __init__(self, *args, **kwargs):
-        super(ArtistForm, self).__init__(*args, **kwargs)
-
-        self.fields['name'].required = False
-        self.fields['bio'].required = False
-        self.fields['email'].required = False
-        self.fields['phone'].required = False
-        self.fields['photo'].required = False
-        self.fields['instagram'].required = False
-        self.fields['country'].required = False
-
 
 class ApproveOpportunityForm(forms.Form):
     notes_to_curator = forms.CharField(

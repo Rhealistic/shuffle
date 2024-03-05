@@ -10,6 +10,7 @@ from rest_framework import status as drf_status
 
 from shuffle.artist.serializers import OpportunitySerializer
 from shuffle.artist.utils.discovery import discover_opportunities
+from shuffle.calendar.utils import hours_ago
 
 from ..artist.models import Opportunity
 from . import utils
@@ -51,7 +52,7 @@ def get_concepts(_, concept_id=None):
     concepts = Concept.objects\
         .filter(curator__organization__is_active=True)\
         .filter(curator__is_active=True)\
-        .filter(is_active=True)\
+        .filter(is_active=True)
     
     if concept_id:
         try:
@@ -190,7 +191,7 @@ def accept_shuffle_invite(_, opportunity_id=None):
     try:
         opportunity: Opportunity = Opportunity.objects\
             .filter(subscriber__concept__curator__organization__is_active=True)\
-            .filter(sent_at__gte=timezone.now() - timedelta(hours=24))\
+            .filter(sent_at__gte=hours_ago(24))\
             .filter(subscriber__concept__curator__is_active=True)\
             .filter(subscriber__concept__is_active=True)\
             .filter(subscriber__is_subscribed=True)\

@@ -1,11 +1,9 @@
-from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.db import transaction
 from django.http import HttpResponseServerError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
-from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -13,13 +11,15 @@ from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
 from shuffle.artist.utils.sms import send_signup_sms, send_sms
+from shuffle.calendar.utils import hours_ago
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
 from shuffle.curator.utils import accept_invite, do_reshuffle, skip_invite
 
 from .models import Artist, Opportunity, Subscriber
-from .forms import ApproveOpportunityForm, RejectOpportunityForm, SubscriptionForm, ArtistForm
+from .forms import \
+    ApproveOpportunityForm, RejectOpportunityForm, SubscriptionForm, ArtistForm
 from .serializers import \
     ArtistSerializer, OpportunitySerializer, SMSSendSerializer, \
     SubscriberSerializer, SubscriberUpdateSerializer
@@ -278,7 +278,7 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
             .filter(subscriber__concept__is_active=True)\
             .filter(subscriber__is_subscribed=True)\
             .filter(opportunity_id=opportunity_id)\
-            .filter(sent_at__gte=timezone.now() - timedelta(hours=24))\
+            .filter(sent_at__gte=hours_ago(24))\
             .filter(closed_at__isnull=True)\
             .get()
         shuffle = Shuffle.objects\

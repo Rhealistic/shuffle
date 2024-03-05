@@ -6,8 +6,8 @@ from shuffle.curator.models import Concept
 import logging
 logger = logging.getLogger(__name__)
 
-def days_ago(d):
-    return (timezone.now() - datetime.timedelta(days=d))
+def hours_ago(h): return timezone.now() - datetime.timedelta(hours=h)
+def days_ago(d):  return timezone.now() - datetime.timedelta(days=d)
 
 def get_concept_event_dates(concept: Concept, limit=1):
     if concept.is_recurring and concept.recurrence_type == Concept.RecurrenceType.WEEKLY:
@@ -22,6 +22,7 @@ def get_concept_event_dates(concept: Concept, limit=1):
             concept.end_time,
             limit
         )
+
 
 def get_weekly_event_times(start_date=None, start_time=None, end_time=None, no_of_weeks=1):
     logger.debug(f"get_next_day_of_week({start_date}, {start_time}, {end_time}, {no_of_weeks})")
