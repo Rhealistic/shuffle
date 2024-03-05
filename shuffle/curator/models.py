@@ -133,6 +133,7 @@ class Config(models.Model):
     class ConfigType(models.IntegerChoices):
         AFRICAS_TALKING_SMS = 0, "Africas Talking SMS"
         ACTIVEPIECES_WEBHOOK = 1, "Activepieces Webhook"
+        SMS_TEMPLATE = 2, "SMS Template"
 
     config_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
 

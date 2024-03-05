@@ -84,10 +84,9 @@ class Opportunity(models.Model):
 
     class RejectReason(models.IntegerChoices):
         NONE = 0, '------'
-        UNAVAILABLE = 1, 'Pending'
+        UNAVAILABLE = 1, 'Unavailable'
         RESCHEDULE = 2, 'Reschedule'
-        BUSY = 3, 'Busy'
-        PASS = 4, 'Pass'
+        PASS = 3, 'Pass'
 
     opportunity_id = models.UUIDField(default= uuid.uuid4)
     shuffle_id = models.UUIDField(null=True, blank=True)

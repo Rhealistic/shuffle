@@ -282,7 +282,7 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
             .filter(sent_at__gte=timezone.now() - timedelta(hours=24))\
             .filter(closed_at__isnull=True)\
             .get()
-        shuffle = Shuffle.objects\
+        Shuffle.objects\
             .filter(concept=opportunity.subscriber.concept)\
             .filter(shuffle_id=opportunity.shuffle_id)\
             .filter(closed_at__isnull=True)\
