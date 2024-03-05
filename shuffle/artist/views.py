@@ -306,8 +306,6 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
                 if form.is_valid():
                     with transaction.atomic():
                         if skip_invite(shuffle, opportunity, **form.cleaned_data):
-                            do_reshuffle(opportunity, Opportunity.Status.SKIP)
-                            
                             organization: Organization = opportunity.subscriber.concept.curator.organization
                             return redirect(organization.website)
             else:
