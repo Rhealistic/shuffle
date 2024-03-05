@@ -76,7 +76,7 @@ def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_t
         opportunity.notes_to_curator = notes_to_curator
         opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
 
-        from shuffle.curator.views import do_reshuffle
+        from shuffle.curator.utils import do_reshuffle
         do_reshuffle(opportunity, Opportunity.Status.SKIP)
         
         return True
