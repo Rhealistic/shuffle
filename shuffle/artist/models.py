@@ -89,7 +89,7 @@ class Opportunity(models.Model):
         PASS = 3, 'Pass'
 
     opportunity_id = models.UUIDField(default= uuid.uuid4)
-    shuffle_id = models.UUIDField(null=True, blank=True)
+    shuffle_id = models.UUIDField(null=True, blank=True, db_index=True)
     
     subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, 
         related_name='opportunities', related_query_name='opportunity')

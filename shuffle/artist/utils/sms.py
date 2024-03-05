@@ -66,12 +66,13 @@ def send_invite_sms(artist, event_date: datetime.datetime):
 
     config = Config.objects\
         .filter(type=Config.ConfigType.SMS_TEMPLATE)\
-        .filter(key="SHUFFLE_SIGNUP_SMS")\
+        .filter(key="SHUFFLE_INVITE_SMS")\
         .get()
 
     message = config.value.format(
         artist_name=artist.name,
         event_date=event_date.strftime("%d/%m/%Y"),
+        event_time=event_date.strftime('%I:%M %p'),
         accept_url=accept_url,
         skip_url=skip_url
     )
