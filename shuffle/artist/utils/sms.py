@@ -26,11 +26,12 @@ def send_skip_invite_sms(subscriber: Subscriber):
         .filter(key="SHUFFLE_SKIP_SMS")\
         .get()
     
+    subscriber.sms_count = models.F('sms_count') + 1
+    subscriber.save(update_fields=['sms_count'])
+
     response = send_sms(artist.phone, config.value)
     logger.debug(f"AT's response={response}")
 
-    subscriber.sms_count = models.F('sms_count') + 1
-    subscriber.save(update_fields=['sms_count'])
 
 
 def send_success_sms(subscriber: Subscriber):
@@ -51,10 +52,10 @@ def send_success_sms(subscriber: Subscriber):
         curator_phone=curator.phone
     )
     
-    response = send_sms(artist.phone, message)
     subscriber.sms_count = models.F('sms_count') + 1
     subscriber.save(update_fields=['sms_count'])
     
+    response = send_sms(artist.phone, message)
     logger.debug(f"AT's response={response}")
 
 
