@@ -136,7 +136,7 @@ class Config(models.Model):
     config_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
 
     key = models.CharField(max_length=100, unique=True)
-    value = models.TextField()
+    value = models.CharField(max_length=1000)
 
     type = models.PositiveSmallIntegerField(choices=ConfigType.choices, default=ConfigType.JSON_CONFIG)
 
