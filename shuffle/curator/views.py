@@ -9,6 +9,7 @@ from rest_framework.response import Response
 from rest_framework import status as drf_status
 
 from shuffle.artist.serializers import OpportunitySerializer
+from shuffle.artist.utils.discovery import discover_opportunities
 
 from ..artist.models import Opportunity
 from . import utils
@@ -29,7 +30,7 @@ def do_discover_opportunities(_, concept_id):
             .filter(is_active=True)\
             .filter(concept_id=concept_id)\
             .get()
-        opportunities = utils.discover_opportunities(concept)
+        opportunities = discover_opportunities(concept)
 
         return Response(
             data=OpportunitySerializer(opportunities, many=True).data, 

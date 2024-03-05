@@ -124,7 +124,7 @@ def pick_performer(concept: Concept):
         next_cycle = subscribers\
             .filter(status=Subscriber.Status.NEXT_CYCLE)
         if next_cycle.count() > 0:
-            logger.debug(f"{next_cycle.count()} 'NEXT_CYCLE' status subscribers found found")
+            logger.debug(f"{next_cycle.count()} 'NEXT_CYCLE' status subscribers found")
 
             return next_cycle\
                 .order_by(Random())\
@@ -137,12 +137,12 @@ def pick_performer(concept: Concept):
             .filter(performance_count__lte=1)
 
         if performed_atmost_once.count() > 0:
-            logger.debug(f"{performed_atmost_once.count()} 'PERFORMED - ATLEAST ONCE' subscribers found found")
+            logger.debug(f"{performed_atmost_once.count()} 'PERFORMED - ATLEAST ONCE' subscribers found")
             return performed_atmost_once\
                 .order_by(Random())\
                 .first()
         else:
-            logger.debug(f"{performed.count()} 'PERFORMED - MORE THAN ONCE' status subscribers found found")
+            logger.debug(f"{performed.count()} 'PERFORMED - MORE THAN ONCE' status subscribers found")
             return performed\
                 .order_by(Random())\
                 .first()
