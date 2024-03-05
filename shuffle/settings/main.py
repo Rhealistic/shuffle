@@ -219,3 +219,6 @@ LOGGING = {
         },
     },
 }
+
+BASE_URL = "https://shuffle.rhealistic.info"
+BASE_API_URL = f"{BASE_URL}/v1"

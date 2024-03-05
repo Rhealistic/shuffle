@@ -2,7 +2,6 @@ import uuid
 import json
 
 from django.db import models
-from django.utils import timezone
 
 class Organization(models.Model):
     name = models.CharField(max_length=100)
@@ -96,11 +95,10 @@ class Concept(models.Model):
     def __str__(self):
         return self.title
     
-    def next_event_timing(self):
-        return {
-            'start': (self.start_date or timezone.now().date()),
-            'end': (self.start_date or timezone.now().date()),
-        }
+    def get_next_event_timing(self):
+        from shuffle.calendar.utils import get_concept_event_dates
+        return get_concept_event_dates(self)[0]
+
 
 class Shuffle(models.Model):
 
@@ -131,7 +129,7 @@ class Shuffle(models.Model):
 
 class Config(models.Model):
     class ConfigType(models.IntegerChoices):
-        AFRICAS_TALKING_SMS = 0, "Africas Talking SMS"
+        JSON_CONFIG = 0, "JSON Config"
         ACTIVEPIECES_WEBHOOK = 1, "Activepieces Webhook"
         SMS_TEMPLATE = 2, "SMS Template"
 
@@ -140,13 +138,11 @@ class Config(models.Model):
     key = models.CharField(max_length=100)
     value = models.CharField(max_length=1000)
 
-    type = models.PositiveSmallIntegerField(
-        choices=ConfigType.choices, 
-        default=ConfigType.AFRICAS_TALKING_SMS)
+    type = models.PositiveSmallIntegerField(choices=ConfigType.choices, default=ConfigType.JSON_CONFIG)
 
     class Meta:
         db_table = "system_config"
 
-    def get_value(self):
-        if self.type == self.ConfigType.AFRICAS_TALKING_SMS:
+    def get_json(self):
+        if self.type == self.ConfigType.JSON_CONFIG:
             return json.loads(self.value)

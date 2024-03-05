@@ -1,46 +1,103 @@
+import datetime
 import requests
-from shuffle.curator.models import Config
 
-from ..models import Artist
-from ..serializers import AFTSMSSerializer
+from django.conf import settings
+from django.db import models
+
+from shuffle.curator.models import Concept, Config, Curator
+
+from ..models import Artist, Subscriber
+from ..serializers import AFTConfigSerializer
+from .url_shortener import shorten_url
 
 import logging
 logger = logging.getLogger(__name__)
 
 
+AFRICAS_TALKING_BASE_URL = "https://api.africastalking.com/version1"
+AFRICAS_TALKING_MESSAGING_URL = f"{AFRICAS_TALKING_BASE_URL}/messaging"
+
+def send_success_sms(subscriber: Subscriber):
+    logger.debug(f"send_success_sms({subscriber})")
+
+    artist: Artist = subscriber.artist
+    concept: Concept = subscriber.concept
+    curator: Curator = concept.curator
+    config = Config.objects\
+        .filter(type=Config.ConfigType.SMS_TEMPLATE)\
+        .filter(key="SHUFFLE_SUCCESS_SMS")\
+        .get()
+    
+    (start, _) = concept.get_next_event_timing()
+    message = config.value.format(
+        artist_name=artist.name, 
+        event_date=start.strftime("%d/%m/%Y"),
+        curator_phone=curator.phone
+    )
+    
+    response = send_sms(artist.phone, message)
+    subscriber.sms_sent = models.F('sms_sent') + 1
+    subscriber.save(update_fields=['sms_sent'])
+    
+    logger.debug(f"AT's response={response}")
+
+
+def send_invite_sms(artist, event_date: datetime.datetime):
+    logger.debug(f"send_invite_sms({artist.phone})")
+
+    accept_url = shorten_url(f'{settings.BASE_URL}/invite/<str:opportunity_id>/accept/')
+    skip_url = shorten_url(f'{settings.BASE_URL}/invite/<str:opportunity_id>/skip/')
+
+    config = Config.objects\
+        .filter(type=Config.ConfigType.SMS_TEMPLATE)\
+        .filter(key="SHUFFLE_SIGNUP_SMS")\
+        .get()
+
+    message = config.value.format(
+        artist_name=artist.name,
+        event_date=event_date.strftime("%d/%m/%Y"),
+        accept_url=accept_url,
+        skip_url=skip_url
+    )
+    return send_sms(artist.phone, message)
+
+
 def send_signup_sms(artist: Artist):
     logger.debug(f"send_signup_sms({artist.artist_id}, {artist.phone})")
 
-    return send_sms(artist.phone, (
-        f'Shuffle! {artist.name}, thank you for signing up. '
-        f'We will communicate via SMS, keep your phone close for opportunities every week.'
-    ))
+    config = Config.objects\
+        .filter(type=Config.ConfigType.SMS_TEMPLATE)\
+        .filter(key="SHUFFLE_SIGNUP_SMS")\
+        .get()
+    
+    return send_sms(artist.phone, config.value.format(artist_name=artist.name))
 
 
 def send_sms(recipient_phone, message):
     logger.debug(f"send_sms({recipient_phone}, {message})")
     
     try:
-        config = Config.objects\
-            .filter(type=Config.ConfigType.AFRICAS_TALKING_SMS)\
-            .filter(key="CREDENTIALS")\
-            .get()
+        credentials = Config.objects\
+            .filter(type=Config.ConfigType.JSON_CONFIG)\
+            .filter(key="AFRICAS_TALKING_CREDENTIALS")\
+            .get()\
+            .get_json()
         
-        if AFTSMSSerializer(data=config.get_value()).is_valid():
+        if AFTConfigSerializer(data=credentials).is_valid():
             logger.debug("config found with valid credentials")
 
             response = requests.post(
-                "https://api.africastalking.com/version1/messaging",
+                AFRICAS_TALKING_MESSAGING_URL,
                 data={
-                    'username': config.get_value().get('username'), 
                     'to': recipient_phone,
-                    'from': config.get_value().get('sender_id'),
+                    'from': credentials.get('sender_id'),
+                    'username': credentials.get('username'), 
                     'message': message
                 },
                 headers={
                     'Accept': 'application/json',
                     'Content-Type': 'application/x-www-form-urlencoded',
-                    'apiKey': config.get_value().get('api_key'),
+                    'apiKey': credentials.get('api_key'),
                 }
             )
             

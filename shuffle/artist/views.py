@@ -2,22 +2,21 @@ from datetime import timedelta
 from django.core.exceptions import ObjectDoesNotExist
 from django.contrib import messages
 from django.db import transaction
-from django.http import HttpResponseBadRequest, HttpResponseServerError
+from django.http import HttpResponseServerError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
 from django.utils import timezone
-import requests
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
-from shuffle.artist.utils.sms import send_signup_sms, send_sms
+from shuffle.artist.utils.sms import send_signup_sms, send_sms, send_success_sms
 
 from shuffle.core.utils import json
-from shuffle.curator.models import Concept, Config, Curator, Organization, Shuffle
-from shuffle.curator.utils import accept_invite, skip_invite
+from shuffle.curator.models import Concept, Curator, Organization, Shuffle
+from shuffle.curator.utils import accept_invite, do_reshuffle, skip_invite
 
 from .models import Artist, Opportunity, Subscriber
 from .forms import ApproveOpportunityForm, RejectOpportunityForm, SubscriptionForm, ArtistForm
@@ -282,7 +281,7 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
             .filter(sent_at__gte=timezone.now() - timedelta(hours=24))\
             .filter(closed_at__isnull=True)\
             .get()
-        Shuffle.objects\
+        shuffle = Shuffle.objects\
             .filter(concept=opportunity.subscriber.concept)\
             .filter(shuffle_id=opportunity.shuffle_id)\
             .filter(closed_at__isnull=True)\
@@ -295,13 +294,9 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                 if form.is_valid():
                     with transaction.atomic():
-                        opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
-                        opportunity.save(update_fields=['notes_to_curator'])
-
-                        complete_shuffle(opportunity, 'accept')
-
-                        organization: Organization = opportunity.subscriber.concept.curator.organization
-                        return redirect(organization.website)
+                        if accept_invite(shuffle, opportunity, notes=form.cleaned_data['notes_to_curator']):
+                            organization: Organization = opportunity.subscriber.concept.curator.organization
+                            return redirect(organization.website)
             else:
                 form: ApproveOpportunityForm = ApproveOpportunityForm()
         elif action == Opportunity.Status.SKIP:
@@ -310,14 +305,15 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                 if form.is_valid():
                     with transaction.atomic():
-                        opportunity.reject_reason = form.cleaned_data['reason']
-                        opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
-                        opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+                        if skip_invite(shuffle, opportunity):
+                            opportunity.reject_reason = form.cleaned_data['reason']
+                            opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
+                            opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
 
-                        complete_shuffle(opportunity, 'skip')
+                            do_reshuffle(opportunity, Opportunity.Status.SKIP)
 
-                        organization: Organization = opportunity.subscriber.concept.curator.organization
-                        return redirect(organization.website)
+                            organization: Organization = opportunity.subscriber.concept.curator.organization
+                            return redirect(organization.website)
             else:
                 form = RejectOpportunityForm()
         
@@ -335,24 +331,3 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
         return HttpResponseServerError()
 
-
-def complete_shuffle(opportunity: Opportunity, action):
-    logger.debug(f"complete_shuffle({opportunity}, {action})")
-
-    config = Config.objects\
-        .filter(type=Config.ConfigType.ACTIVEPIECES_WEBHOOK)\
-        .filter(key="APPROVAL_URL")\
-        .get()
-
-    response = requests.post(
-        config.value,
-        json={
-            'action': action,
-            'opportunity_id': str(opportunity.opportunity_id)
-        }
-    )
-    
-    logger.debug("response")
-    logger.debug(response)
-    logger.debug(response.content)
-    return response.json()

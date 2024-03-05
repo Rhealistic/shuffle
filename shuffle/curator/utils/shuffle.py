@@ -1,92 +1,16 @@
 from django.db import transaction
-from django.db import models
 from django.db.models.functions import Random
 
 from django.utils import timezone
 from shuffle.artist.utils.discovery import close_opportunity
-
-from shuffle.calendar.models import Event
 from shuffle.curator.models import Concept
-from shuffle.calendar.utils import days_ago
 
-from ..artist.models import Opportunity, Subscriber
-from .models import Shuffle
+from shuffle.artist.models import Opportunity, Subscriber
+from .invites import prepare_invite
+from ..models import Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
-
-def discover_opportunities(concept: Concept):
-    logger.debug(f"discover_opportunities({concept})")
-
-    subscribers = concept\
-        .concept_subscriptions\
-        .filter(artist__is_active=True)\
-        .filter(concept__curator__organization__is_active=True)\
-        .filter(is_subscribed=True)\
-        .order_by('-created_at')
-    
-    new_opportunities = []
-
-    for subscriber in subscribers:
-        logger.info(f"checking subscriber engagement for: {subscriber}")
-
-        # Check if subscriber has meets criteria
-        #1. Has no pending requests (in the middle of a shuffle)
-        #2. Has not performed on this platform/concept in the past 4 weeks
-        #3. Has not skipped an opportunity in the past 2 weeks
-        #4. Has not expired an opportunity in the past 4 weeks
-        #5. Has not cancelled an event in the past 2 weeks
-
-        un_engaged = subscriber\
-            .opportunities\
-            .exclude(
-                models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
-                | models.Q(status=Opportunity.Status.ACCEPTED, subscriber__status=Subscriber.Status.PERFORMED, event__status=Event.Status.SUCCESSFUL, subscriber__last_performance__gte=days_ago(4 * 7))
-                | models.Q(status=Opportunity.Status.ACCEPTED, event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED, Event.Status.FAILED], closed_at__gte=days_ago(2 * 7))
-                | models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
-                | models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(2 * 7)))
-        
-        if not un_engaged.exists():
-            logger.info(f"potential subscriber has not been engaged recently: {subscriber}")
-
-            new_opportunities.append(
-                Opportunity
-                    .objects
-                    .create(subscriber=subscriber))
-            
-            logger.info(f"opportunity created for: {subscriber}")
-            
-    return new_opportunities
-
-def prepare_invite(shuffle: Shuffle, pick: Subscriber):
-    logger.debug(f"prepare_invite({shuffle}, {pick})")
-
-    opportunities = Opportunity.objects\
-        .filter(subscriber=pick)\
-        .filter(status=Opportunity.Status.PENDING)\
-        .filter(closed_at__isnull=True)\
-        .order_by('-created_at')
-    
-    if opportunities.exists():
-        opportunity = opportunities.first()
-
-        logger.debug(f"awaiting acceptance for opportunity ({opportunity})")
-
-        opportunity.status = Opportunity.Status.AWAITING_ACCEPTANCE
-        opportunity.sent_at = timezone.now()
-        opportunity.shuffle_id = shuffle.shuffle_id
-        opportunity.save()
-
-        logger.debug(f"opportunity sent for ({opportunity})")
-
-        shuffle.pick = pick
-        shuffle.status = Shuffle.Status.INVITE_SENT
-        shuffle.save()
-
-        return opportunity
-    else:
-        logger.debug(f"Opportunity not found for artist")
-
 
 def do_shuffle(concept: Concept):
     logger.debug(f"do_shuffle(`{concept}`)")
@@ -134,22 +58,22 @@ def do_shuffle(concept: Concept):
         shuffle.save()
 
 
-def do_reshuffle(current: Opportunity, opportunity_status):
-    logger.debug(f"do_reshuffle({current}, {opportunity_status})")
+def do_reshuffle(previous: Opportunity, opportunity_status):
+    logger.debug(f"do_reshuffle({previous}, {opportunity_status})")
 
     with transaction.atomic():
-        if close_opportunity(current, opportunity_status):
+        if close_opportunity(previous, opportunity_status):
             shuffle = Shuffle.objects\
                 .filter(closed_at__isnull=True)\
-                .get(shuffle_id=current.shuffle_id)
+                .get(shuffle_id=previous.shuffle_id)
             
             shuffle.status = Shuffle.Status.RESHUFFLE
             shuffle.retries += 1
             shuffle.save()
 
-            current.status = opportunity_status
-            current.closed_at = timezone.now()
-            current.save()
+            previous.status = opportunity_status
+            previous.closed_at = timezone.now()
+            previous.save()
 
             shuffle.concept.reshuffle_count += 1
             shuffle.concept.save()
@@ -174,6 +98,7 @@ def do_reshuffle(current: Opportunity, opportunity_status):
             shuffle.status = Shuffle.Status.FAILED
             shuffle.closed_at = timezone.now()
             shuffle.save()
+
 
 
 def pick_performer(concept: Concept):
@@ -221,18 +146,3 @@ def pick_performer(concept: Concept):
             return performed\
                 .order_by(Random())\
                 .first()
-
-
-def accept_invite(shuffle, opportunity):
-    logger.debug(f"accept_invite({shuffle}, {opportunity})")
-
-    if close_opportunity(opportunity, Opportunity.Status.ACCEPTED):
-        shuffle.status = Shuffle.Status.COMPLETE
-        shuffle.closed_at = timezone.now()
-        shuffle.save()
-
-
-def skip_invite(shuffle, opportunity):
-    logger.debug(f"skip_invite({shuffle}, {opportunity})")
-
-    return close_opportunity(opportunity, Opportunity.Status.SKIP)

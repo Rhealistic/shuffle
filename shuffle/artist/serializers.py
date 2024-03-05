@@ -59,7 +59,11 @@ class SMSSendSerializer(serializers.Serializer):
     message = serializers.CharField(max_length=480)
 
 
-class AFTSMSSerializer(serializers.Serializer):
+class AFTConfigSerializer(serializers.Serializer):
     sender_id = serializers.CharField(max_length=50, required=True)
     api_key = serializers.CharField(max_length=100, required=True)
     username = serializers.CharField(max_length=15, required=True)
+
+class ShortgyConfigSerializer(serializers.Serializer):
+    api_key = serializers.CharField(max_length=50, required=True)
+    domain = serializers.CharField(max_length=100, required=True)
