@@ -52,6 +52,7 @@ class Subscriber(models.Model):
     status = models.PositiveSmallIntegerField(
         choices=Status.choices, null=True,default=Status.POTENTIAL)
 
+    sms_count = models.PositiveSmallIntegerField(default=0)
     selection_count = models.PositiveSmallIntegerField(default=0)
     acceptance_count = models.PositiveSmallIntegerField(default=0)
     expired_count = models.PositiveSmallIntegerField(default=0)

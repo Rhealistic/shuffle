@@ -29,8 +29,8 @@ def send_skip_invite_sms(subscriber: Subscriber):
     response = send_sms(artist.phone, config.value)
     logger.debug(f"AT's response={response}")
 
-    subscriber.sms_sent = models.F('sms_sent') + 1
-    subscriber.save(update_fields=['sms_sent'])
+    subscriber.sms_count = models.F('sms_count') + 1
+    subscriber.save(update_fields=['sms_count'])
 
 
 def send_success_sms(subscriber: Subscriber):
@@ -52,8 +52,8 @@ def send_success_sms(subscriber: Subscriber):
     )
     
     response = send_sms(artist.phone, message)
-    subscriber.sms_sent = models.F('sms_sent') + 1
-    subscriber.save(update_fields=['sms_sent'])
+    subscriber.sms_count = models.F('sms_count') + 1
+    subscriber.save(update_fields=['sms_count'])
     
     logger.debug(f"AT's response={response}")
 
