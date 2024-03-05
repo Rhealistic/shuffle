@@ -1,8 +1,9 @@
-from django.db import models
-
 from django.utils import timezone
 from shuffle.artist.utils.discovery import close_opportunity
-from shuffle.artist.utils.sms import send_invite_sms, send_skip_invite_sms, send_success_sms
+from shuffle.artist.utils.sms import \
+    send_invite_sms, \
+    send_skip_invite_sms, \
+    send_success_sms
 
 from shuffle.artist.models import Artist, Opportunity, Subscriber
 from ..models import Concept, Shuffle
@@ -26,7 +27,7 @@ def prepare_invite(shuffle: Shuffle, pick: Subscriber):
         concept: Concept = pick.concept
 
         event_date, _ = concept.get_next_event_timing()
-        send_invite_sms(artist, event_date)
+        send_invite_sms(artist, opportunity, event_date)
 
         logger.debug(f"awaiting acceptance for opportunity ({opportunity})")
 
@@ -73,3 +74,5 @@ def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_t
         opportunity.reject_reason = reason
         opportunity.notes_to_curator = notes_to_curator
         opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+
+

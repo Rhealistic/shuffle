@@ -6,7 +6,7 @@ from django.db import models
 
 from shuffle.curator.models import Concept, Config, Curator
 
-from ..models import Artist, Subscriber
+from ..models import Artist, Opportunity, Subscriber
 from ..serializers import AFTConfigSerializer
 from .url_shortener import shorten_url
 
@@ -58,11 +58,11 @@ def send_success_sms(subscriber: Subscriber):
     logger.debug(f"AT's response={response}")
 
 
-def send_invite_sms(artist, event_date: datetime.datetime):
+def send_invite_sms(artist: Artist, opportunity: Opportunity, event_date: datetime.datetime):
     logger.debug(f"send_invite_sms({artist.phone})")
 
-    accept_url = shorten_url(f'{settings.BASE_URL}/invite/<str:opportunity_id>/accept/')
-    skip_url = shorten_url(f'{settings.BASE_URL}/invite/<str:opportunity_id>/skip/')
+    accept_url = shorten_url(f'{settings.BASE_URL}/invite/{opportunity.opportunity_id}/accept/')
+    skip_url = shorten_url(f'{settings.BASE_URL}/invite/{opportunity.opportunity_id}/skip/')
 
     config = Config.objects\
         .filter(type=Config.ConfigType.SMS_TEMPLATE)\
