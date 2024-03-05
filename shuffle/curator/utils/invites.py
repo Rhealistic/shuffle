@@ -60,6 +60,7 @@ def accept_invite(shuffle: Shuffle, opportunity: Opportunity, notes=None):
             opportunity.save(update_fields=['notes_to_curator'])
 
             send_success_sms(opportunity.subscriber)
+            return True
 
 
 def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_to_curator=None):
@@ -74,5 +75,6 @@ def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_t
         opportunity.reject_reason = reason
         opportunity.notes_to_curator = notes_to_curator
         opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
+        return True
 
 
