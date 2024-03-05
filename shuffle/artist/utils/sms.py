@@ -119,7 +119,7 @@ def send_sms(recipient_phone, message):
                 }
             )
             
-            logger.debug(response)
+            logger.debug(response.json())
             return response.json()
         else:
             logger.error("SMS Config is not valid")
