@@ -12,7 +12,7 @@ from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework.request import Request
 from rest_framework import status as drf_status
-from shuffle.artist.utils.sms import send_signup_sms, send_sms, send_success_sms
+from shuffle.artist.utils.sms import send_signup_sms, send_sms
 
 from shuffle.core.utils import json
 from shuffle.curator.models import Concept, Curator, Organization, Shuffle
@@ -305,13 +305,9 @@ def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Sta
 
                 if form.is_valid():
                     with transaction.atomic():
-                        if skip_invite(shuffle, opportunity):
-                            opportunity.reject_reason = form.cleaned_data['reason']
-                            opportunity.notes_to_curator = form.cleaned_data['notes_to_curator']
-                            opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
-
+                        if skip_invite(shuffle, opportunity, **form.cleaned_data):
                             do_reshuffle(opportunity, Opportunity.Status.SKIP)
-
+                            
                             organization: Organization = opportunity.subscriber.concept.curator.organization
                             return redirect(organization.website)
             else:

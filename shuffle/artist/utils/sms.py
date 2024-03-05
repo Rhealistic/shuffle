@@ -17,6 +17,22 @@ logger = logging.getLogger(__name__)
 AFRICAS_TALKING_BASE_URL = "https://api.africastalking.com/version1"
 AFRICAS_TALKING_MESSAGING_URL = f"{AFRICAS_TALKING_BASE_URL}/messaging"
 
+def send_skip_invite_sms(subscriber: Subscriber):
+    logger.debug(f"send_success_sms({subscriber})")
+    artist: Artist = subscriber.artist
+
+    config = Config.objects\
+        .filter(type=Config.ConfigType.SMS_TEMPLATE)\
+        .filter(key="SHUFFLE_SKIP_SMS")\
+        .get()
+    
+    response = send_sms(artist.phone, config.value)
+    logger.debug(f"AT's response={response}")
+
+    subscriber.sms_sent = models.F('sms_sent') + 1
+    subscriber.save(update_fields=['sms_sent'])
+
+
 def send_success_sms(subscriber: Subscriber):
     logger.debug(f"send_success_sms({subscriber})")
 

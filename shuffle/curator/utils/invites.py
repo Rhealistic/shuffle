@@ -2,10 +2,10 @@ from django.db import models
 
 from django.utils import timezone
 from shuffle.artist.utils.discovery import close_opportunity
-from shuffle.artist.utils.sms import send_invite_sms, send_sms, send_success_sms
+from shuffle.artist.utils.sms import send_invite_sms, send_skip_invite_sms, send_success_sms
 
 from shuffle.artist.models import Artist, Opportunity, Subscriber
-from ..models import Concept, Config, Shuffle
+from ..models import Concept, Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
@@ -61,23 +61,15 @@ def accept_invite(shuffle: Shuffle, opportunity: Opportunity, notes=None):
             send_success_sms(opportunity.subscriber)
 
 
-def skip_invite(shuffle: Shuffle, opportunity: Opportunity):
+def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_to_curator=None):
     logger.debug(f"skip_invite({shuffle}, {opportunity})")
 
     if close_opportunity(opportunity, Opportunity.Status.SKIP):
         shuffle.pick = None
         shuffle.save(update_fields=['pick'])
 
-        subscriber: Subscriber = opportunity.subscriber
-        artist: Artist = subscriber.artist
+        send_skip_invite_sms(opportunity.subscriber)
 
-        config = Config.objects\
-            .filter(type=Config.ConfigType.SMS_TEMPLATE)\
-            .filter(key="SHUFFLE_SKIP_SMS")\
-            .get()
-        
-        response = send_sms(artist.phone, config.value)
-        logger.debug(f"AT's response={response}")
-
-        subscriber.sms_sent = models.F('sms_sent') + 1
-        subscriber.save(update_fields=['sms_sent'])
+        opportunity.reject_reason = reason
+        opportunity.notes_to_curator = notes_to_curator
+        opportunity.save(update_fields=['notes_to_curator', 'reject_reason'])
