@@ -4,6 +4,7 @@ from django.db import transaction
 from django.http import HttpResponseServerError
 from django.http.response import HttpResponseNotFound
 from django.shortcuts import render, redirect
+from django.urls import reverse
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
@@ -68,6 +69,8 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
     return render(request, "add_subscriber.html", {
         "artist": artist,
         "form": form,
+        "organization_slug": organization_slug,
+        "concept_slug": concept_slug,
         "successful": successful,
     }, status=status)
 
@@ -181,7 +184,11 @@ def go_home(_):
     curator: Curator = concept.curator
     organization: Organization = curator.organization
     
-    return redirect(f'/subscribe/{organization.slug}/{concept.slug}')
+    return redirect(
+        reverse('subscribe-to-concept', args=(
+            organization.slug, concept.slug
+        ))
+    )
 
 
 @api_view(['POST'])

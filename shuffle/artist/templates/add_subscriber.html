@@ -177,7 +177,7 @@
                     <div class="container">
                         <div class="row">
                             <div class="mb-5">
-                                <form class="subscribe-form" method="POST" action="." onsubmit="on_submit()">
+                                <form class="subscribe-form" method="POST" action="{% url 'subscribe-to-concept' organization_slug concept_slug %}" onsubmit="on_submit()">
                                     {% csrf_token %}
 
                                     {% bootstrap_form form layout='inline' %}

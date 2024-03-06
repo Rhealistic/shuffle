@@ -131,19 +131,27 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
 
 
 def close_event(event: Event, status: Event.Status):
+    logger.debug(f"close_event({event}, {status})")
+
     subscriber = Subscriber.objects\
-        .get(opportunity__event=event)
+        .filter(opportunity__event=event)\
+        .first()
+    
+    if subscriber:
+        logger.debug(f"event subscriber = {subscriber}")
 
-    if status == Event.Status.SUCCESSFUL:
-        subscriber.status = Subscriber.Status.PERFORMED
-    elif status in [Event.Status.RESCHEDULED, Event.Status.CANCELLED]:
-        subscriber.status = Subscriber.Status.NEXT_UP
+        if status == Event.Status.SUCCESSFUL:
+            subscriber.status = Subscriber.Status.PERFORMED
+        elif status in [Event.Status.RESCHEDULED, Event.Status.CANCELLED]:
+            subscriber.status = Subscriber.Status.NEXT_UP
 
-    subscriber.last_performance = subscriber.next_performance
-    subscriber.next_performance = None
-    subscriber.save(update_fields=['status', 'last_performance', 'next_performance'])
+        subscriber.last_performance = subscriber.next_performance
+        subscriber.next_performance = None
+        subscriber.save(update_fields=['status', 'last_performance', 'next_performance'])
 
-    event.status = status
-    event.closed_at = timezone.now()
-    event.save(update_fields=['status', 'closed_at'])
+        event.status = status
+        event.closed_at = timezone.now()
+        event.save(update_fields=['status', 'closed_at'])
+        
+        return True
 
