@@ -24,30 +24,6 @@
                 background-color: rgba(0,0,0,0.95);
                 color: rgba(255, 255, 255, 0.95);
             }
-            
-            .header {
-                /* font-family: 'Playfair Display', serif; */
-                font-weight: bolder;
-                color: #FFB24D;
-                font-size: 65px;
-                font-weight: 600;
-                line-height: 1;
-            }
-            .header.success {
-                color: #198754;
-            }
-            .btn-action {
-                background-color: #fff;
-                color: #7d322f;
-                border: 1px solid #7d322f;
-                font-size: 18px;
-            }
-            .btn-action:hover {
-                background-color: #7d322f;
-                border-color: #000;
-                font-weight: 700;
-                color: rgb(0, 213, 255);
-            }
 
             form {
                 font-family: 'JetBrains Mono', sans-serif;
@@ -59,21 +35,15 @@
                 display: none;
             }
             
-            .content-container {
-                padding-top: 50px;
-                padding-bottom: 50px;
-                background-color: rgba(0, 0, 0, 0.95);
-                background-image: url(https://cdn.rhealistic.info/profiles/curators/santuri-east-africa/jenga-jungle.jpg)
-            }
             .form-container {
                 padding-top: 72px;
                 padding-bottom: 72px;
             }
             input::placeholder {
-                color: rgba(255, 255, 255, 0.65) !important;
+                color: rgba(255, 255, 255, 0.55) !important;
             }
             textarea::placeholder {
-                color: rgba(255, 255, 255, 0.65) !important;
+                color: rgba(255, 255, 255, 0.55) !important;
             }
 
             .text-content {
@@ -120,12 +90,19 @@
             .smaller {
                 font-size: 40px;
             }
+            .white-bg {
+                background-color: #d2d2d2;
+                height: 50vh;
+            }
+            .logo-footer{
+                padding-top: 15vh;
+            }
         </style>
       </head>
     <body>
         {% bootstrap_messages %}
 
-        <div class="container">
+        <div class="container pb-5">
             <div class="pt-5">
                 <h1 class="header white smaller">
                     {% if action == 2 %}
@@ -154,30 +131,9 @@
                 </form>
             </div>
         </div>
-        <div class="container white-bg">
-            <div class="row">
-                <div class="mb-5">
-                    <form class="subscribe-form" method="POST" action="." onsubmit="on_submit()">
-                        <input type="hidden" name="csrfmiddlewaretoken" value="rb3TzxnQ8FD4Ezj8ahWysrBm8ODSTnpTZSZ2xBC2bwR4XcNs0Xc6NJUd2zShnc94">
-            
-                        <div class="col-auto"><label class="visually-hidden" for="id_name">Name</label><input type="text" name="name" maxlength="16" class="form-control bg-dark text-white" placeholder="Name" title="" required="" id="id_name"></div>
-                        <div class="col-auto"><label class="visually-hidden" for="id_bio">Bio</label><textarea name="bio" cols="40" rows="3" maxlength="320" class="form-control bg-dark text-white" placeholder="Bio" title="" required="" id="id_bio"></textarea></div>
-                        <div class="col-auto"><label class="visually-hidden" for="id_email">Email</label><input type="email" name="email" maxlength="254" class="form-control bg-dark text-white" placeholder="Email" title="" required="" id="id_email"></div>
-                        <div class="col-auto"><label class="visually-hidden" for="id_phone">Phone</label><input type="text" name="phone" maxlength="15" class="form-control bg-dark text-white" placeholder="Phone" title="" required="" id="id_phone"></div>
-                        <div class="col-auto"><label class="visually-hidden" for="id_instagram">Instagram</label><input type="url" name="instagram" maxlength="200" class="form-control bg-dark text-white" placeholder="Instagram" title="" id="id_instagram"></div>
-                        <div class="col-auto"><label class="visually-hidden" for="id_mixcloud">Mixcloud</label><input type="url" name="mixcloud" maxlength="200" class="form-control bg-dark text-white" placeholder="Mixcloud" title="Link to mixcloud" id="id_mixcloud"></div>
-                        <div class="col-auto"><label class="visually-hidden" for="id_soundcloud">Soundcloud</label><input type="url" name="soundcloud" maxlength="200" class="form-control bg-dark text-white" placeholder="Soundcloud" title="Link to soundcloud" id="id_soundcloud"></div>
-            
-                        <div class="mt-5 col-5 col-xs-12 col-sm-12 col-md-6">
-                            <div class="mb-3">
-                                <input type="submit" id="submit-button" class="btn btn-action btn-block" value="Submit Your Application >">
-                            </div>
-                        </div>
-                    </form>
-                </div>
-                <div class="col-lg-5 col-sm-12 col-md-6 m-auto">
-                    <img src="https://cdn.rhealistic.info/profiles/curators/santuri-east-africa/santuri-east-africa-logo-black.png" class="py-6 mx-auto d-block" alt="...">
-                </div>
+        <div class="container-fluid white-bg">
+            <div class="col-lg-5 col-sm-12 col-md-6 m-auto logo-footer">
+                <img src="https://cdn.rhealistic.info/profiles/curators/santuri-east-africa/santuri-east-africa-logo-black.png" class="py-6 mx-auto d-block" alt="...">
             </div>
         </div>
 
