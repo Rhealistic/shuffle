@@ -7,7 +7,7 @@ class Organization(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, null=True)
 
-    organization_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
+    organization_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
 
     email = models.EmailField()
     phone = models.CharField(max_length=30)
@@ -29,7 +29,7 @@ class Curator(models.Model):
     email = models.EmailField()
     phone = models.CharField(max_length=30)
 
-    curator_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
+    curator_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
     organization = models.ForeignKey('Organization', 
         models.SET_NULL, null=True, related_name='curators', related_query_name='curator')
 
@@ -65,7 +65,7 @@ class Concept(models.Model):
         SATURDAY = 5, "Saturday"
         SUNDAY = 6, "Sunday"
 
-    concept_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    concept_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
     curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
 
     title = models.CharField(max_length=150)
@@ -110,7 +110,7 @@ class Shuffle(models.Model):
         COMPLETE = 4, "Complete"
         FAILED = 5, "Failed"
     
-    shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
+    shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
     concept    = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
     pick    = models.ForeignKey("artist.Subscriber", models.SET_NULL, null=True)
@@ -133,7 +133,7 @@ class Config(models.Model):
         ACTIVEPIECES_WEBHOOK = 1, "Activepieces Webhook"
         SMS_TEMPLATE = 2, "SMS Template"
 
-    config_id = models.UUIDField(max_length=30, default = uuid.uuid4, unique=True)
+    config_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
 
     key = models.CharField(max_length=100, unique=True)
     value = models.TextField()

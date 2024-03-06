@@ -12,22 +12,19 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-def prepare_invite(shuffle: Shuffle, pick: Subscriber):
+def prepare_invite(shuffle: Shuffle, pick: Subscriber) -> Opportunity:
     logger.debug(f"prepare_invite({shuffle}, {pick})")
 
-    opportunities = Opportunity.objects\
+    opportunity = Opportunity.objects\
         .filter(subscriber=pick)\
         .filter(status=Opportunity.Status.PENDING)\
         .filter(closed_at__isnull=True)\
-        .order_by('-created_at')
+        .order_by('-created_at')\
+        .first()
     
-    if opportunities.exists():
-        opportunity = opportunities.first()
+    if opportunity:
         artist:Artist = opportunity.subscriber.artist
         concept: Concept = pick.concept
-
-        event_date, _ = concept.get_next_event_timing()
-        send_invite_sms(artist, opportunity, event_date)
 
         logger.debug(f"awaiting acceptance for opportunity ({opportunity})")
 
@@ -42,12 +39,15 @@ def prepare_invite(shuffle: Shuffle, pick: Subscriber):
         shuffle.status = Shuffle.Status.INVITE_SENT
         shuffle.save()
 
+        event_date, _ = concept.get_next_event_timing()
+        send_invite_sms(artist, opportunity, event_date)
+
         return opportunity
     else:
         logger.debug(f"Opportunity not found for artist")
 
 
-def accept_invite(shuffle: Shuffle, opportunity: Opportunity, notes=None):
+def accept_invite(shuffle: Shuffle, opportunity: Opportunity, notes=None) -> bool:
     logger.debug(f"accept_invite({shuffle}, {opportunity})")
 
     if close_opportunity(opportunity, Opportunity.Status.ACCEPTED):
@@ -63,14 +63,12 @@ def accept_invite(shuffle: Shuffle, opportunity: Opportunity, notes=None):
             return True
 
 
-def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_to_curator=None):
+def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_to_curator=None) -> bool:
     logger.debug(f"skip_invite({shuffle}, {opportunity})")
 
     if close_opportunity(opportunity, Opportunity.Status.SKIP):
         shuffle.pick = None
         shuffle.save(update_fields=['pick'])
-
-        send_skip_invite_sms(opportunity.subscriber)
 
         opportunity.reject_reason = reason
         opportunity.notes_to_curator = notes_to_curator
@@ -79,6 +77,6 @@ def skip_invite(shuffle: Shuffle, opportunity: Opportunity, reason=None, notes_t
         from shuffle.curator.utils import do_reshuffle
         do_reshuffle(opportunity, Opportunity.Status.SKIP)
         
+        send_skip_invite_sms(opportunity.subscriber)
         return True
-
 

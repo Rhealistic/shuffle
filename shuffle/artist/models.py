@@ -15,7 +15,7 @@ class Artist(models.Model):
     epk = models.URLField(help_text="Link to EPK + Tech rider", blank=True, null=True)
     instagram = models.URLField(blank=True, null=True)
     
-    artist_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    artist_id = models.UUIDField(max_length=30, default=uuid.uuid4, db_index=True, unique=True)
     mailerlite_subscriber_id = models.CharField(max_length=30, null=True, blank=True)
     mailerlite_subscriber_group_id = models.CharField(max_length=30, null=True, blank=True)
 
@@ -35,14 +35,16 @@ class Subscriber(models.Model):
     class Status(models.IntegerChoices):
         # has been identified as a potential performer
         POTENTIAL = 0, "Potential" 
-        # has been chosen to perform in the next event of the concept
-        NEXT_PERFORMING = 1, "Next Performing" 
-        # outcome was successful; artist performed
-        PERFORMED  = 2, "Performed" 
-        # outcome was unsuccessful; opportunity expired or artist skipped.
-        NEXT_CYCLE = 3, "Next Cycle"
+        # event outcome was unsuccessful; second chance
+        NEXT_UP = 2, "Next Up"
+        # shuffle was successful; has been chosen to perform in the next event of the concept
+        NEXT_PERFORMING = 3, "Next Performing" 
+        # shuffle was successful; event was successful, artist performed
+        PERFORMED  = 4, "Performed" 
+        # shuffle was unsuccessful;
+        NEXT_CYCLE = 5, "Next Cycle"
 
-    subscriber_id = models.UUIDField(max_length=30, default = uuid.uuid4)
+    subscriber_id = models.UUIDField(max_length=30, default=uuid.uuid4, db_index=True, unique=True)
 
     concept = models.ForeignKey('curator.Concept', models.CASCADE, 
         related_name='concept_subscriptions', related_query_name='concept_subscription')
@@ -89,7 +91,7 @@ class Opportunity(models.Model):
         RESCHEDULE = 2, 'Reschedule'
         PASS = 3, 'Pass'
 
-    opportunity_id = models.UUIDField(default= uuid.uuid4)
+    opportunity_id = models.UUIDField(default= uuid.uuid4, db_index=True, unique=True)
     shuffle_id = models.UUIDField(null=True, blank=True, db_index=True)
     
     subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, 

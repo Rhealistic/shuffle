@@ -10,9 +10,15 @@ from ..models import Opportunity, Subscriber
 import logging
 logger = logging.getLogger(__name__)
 
-
 def discover_opportunities(concept: Concept):
     logger.debug(f"discover_opportunities({concept})")
+
+    events = Event.objects\
+        .filter(end__lte=timezone.now())\
+        .filter(closed_at__isnull=True)
+    
+    for event in events:
+        close_event(event, Event.Status.SUCCESSFUL)
 
     subscribers = concept\
         .concept_subscriptions\
@@ -28,19 +34,34 @@ def discover_opportunities(concept: Concept):
 
         # Check if subscriber has meets criteria
         #1. Has no pending requests (in the middle of a shuffle)
+        current_pending_requests = models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
         #2. Has not performed on this platform/concept in the past 4 weeks
+        recent_performance = models.Q(
+            status=Opportunity.Status.ACCEPTED, 
+            subscriber__status=Subscriber.Status.PERFORMED, 
+            event__status=Event.Status.SUCCESSFUL, 
+            subscriber__last_performance__gte=days_ago(28)
+        )
         #3. Has not skipped an opportunity in the past 2 weeks
+        recent_skips = models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(2 * 7))
         #4. Has not expired an opportunity in the past 4 weeks
+        recent_expirations = models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
         #5. Has not cancelled an event in the past 2 weeks
+        recent_cancellations = models.Q(
+            status=Opportunity.Status.ACCEPTED, 
+            event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED], 
+            closed_at__gte=days_ago(14)
+        )
 
         un_engaged = subscriber\
             .opportunities\
             .exclude(
-                models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
-                | models.Q(status=Opportunity.Status.ACCEPTED, subscriber__status=Subscriber.Status.PERFORMED, event__status=Event.Status.SUCCESSFUL, subscriber__last_performance__gte=days_ago(4 * 7))
-                | models.Q(status=Opportunity.Status.ACCEPTED, event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED, Event.Status.FAILED], closed_at__gte=days_ago(2 * 7))
-                | models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
-                | models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(2 * 7)))
+                current_pending_requests 
+                | recent_performance 
+                | recent_cancellations 
+                | recent_skips 
+                | recent_expirations
+            )
         
         if not un_engaged.exists():
             logger.info(f"potential subscriber has not been engaged recently: {subscriber}")
@@ -82,7 +103,6 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
                 .filter(id=opportunity.subscriber_id)\
                 .update(
                     acceptance_count=models.F('acceptance_count') + 1,
-                    last_performance=models.F('next_performance'),
                     next_performance=start_time,
                     status=Subscriber.Status.NEXT_PERFORMING
                 )
@@ -94,7 +114,6 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
                 .update(
                     expired_count=models.F('expired_count') + 1,
                     next_performance=None,
-                    last_performance=models.F('next_performance'),
                     status=Subscriber.Status.NEXT_CYCLE
                 )
         elif status == Opportunity.Status.SKIP:
@@ -105,8 +124,26 @@ def close_opportunity(opportunity: Opportunity, status: Opportunity.Status):
                 .update(
                     skip_count=models.F('skip_count') + 1,
                     next_performance=None,
-                    last_performance=models.F('next_performance'),
                     status=Subscriber.Status.NEXT_CYCLE
                 )
     else:
         logger.error(f"status not allowed here")
+
+
+def close_event(event: Event, status: Event.Status):
+    subscriber = Subscriber.objects\
+        .get(opportunity__event=event)
+
+    if status == Event.Status.SUCCESSFUL:
+        subscriber.status = Subscriber.Status.PERFORMED
+    elif status in [Event.Status.RESCHEDULED, Event.Status.CANCELLED]:
+        subscriber.status = Subscriber.Status.NEXT_UP
+
+    subscriber.last_performance = subscriber.next_performance
+    subscriber.next_performance = None
+    subscriber.save(update_fields=['status', 'last_performance', 'next_performance'])
+
+    event.status = status
+    event.closed_at = timezone.now()
+    event.save(update_fields=['status', 'closed_at'])
+

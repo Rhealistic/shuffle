@@ -1,5 +1,6 @@
 from django.db import transaction
 from django.db.models.functions import Random
+from django.db.models.query import QuerySet
 
 from django.utils import timezone
 from shuffle.artist.utils.discovery import close_opportunity
@@ -101,48 +102,34 @@ def do_reshuffle(previous: Opportunity, opportunity_status):
 
 
 
-def pick_performer(concept: Concept):
+def pick_performer(concept: Concept) -> Subscriber:
     logger.debug(f"pick_performer({concept})")
 
-    subscribers = Subscriber.objects\
+    potential_picks: QuerySet = Subscriber.objects\
         .filter(artist__is_active=True)\
         .filter(is_subscribed=True)\
         .filter(concept=concept)\
         .filter(opportunity__status=Opportunity.Status.PENDING)\
         .filter(opportunity__closed_at__isnull=True)
+    
+    def get_random_subscriber(subscribers) -> Subscriber:
+        return subscribers.order_by(Random()).first()
 
     with transaction.atomic():
-        potentials = subscribers\
-            .filter(status=Subscriber.Status.POTENTIAL)
-        if potentials.count() > 0:
-            logger.debug(f"{potentials.count()} 'POTENTIAL' status subscribers found")
+        for status in [
+            Subscriber.Status.POTENTIAL, 
+            Subscriber.Status.NEXT_UP, 
+            Subscriber.Status.NEXT_CYCLE,
+            Subscriber.Status.PERFORMED
+        ]:
+            subscribers = potential_picks.filter(status=status)
 
-            return potentials\
-                .order_by(Random())\
-                .first()
-
-        next_cycle = subscribers\
-            .filter(status=Subscriber.Status.NEXT_CYCLE)
-        if next_cycle.count() > 0:
-            logger.debug(f"{next_cycle.count()} 'NEXT_CYCLE' status subscribers found")
-
-            return next_cycle\
-                .order_by(Random())\
-                .first()
-
-        performed  = subscribers\
-            .filter(status=Subscriber.Status.PERFORMED)
-
-        performed_atmost_once = performed\
-            .filter(performance_count__lte=1)
-
-        if performed_atmost_once.count() > 0:
-            logger.debug(f"{performed_atmost_once.count()} 'PERFORMED - ATLEAST ONCE' subscribers found")
-            return performed_atmost_once\
-                .order_by(Random())\
-                .first()
-        else:
-            logger.debug(f"{performed.count()} 'PERFORMED - MORE THAN ONCE' status subscribers found")
-            return performed\
-                .order_by(Random())\
-                .first()
+            if status == Subscriber.Status.PERFORMED:
+                if subscribers.filter(performance_count__lte=1).count() > 0:
+                    logger.debug(f"{subscribers.count()} '{status} - ATLEAST ONCE' status subscribers found")
+                    get_random_subscriber(subscribers.filter(performance_count__lte=1))
+                else:
+                    get_random_subscriber(subscribers)
+            else:
+                logger.debug(f"{subscribers.count()} '{status}' status subscribers found")
+                get_random_subscriber(subscribers)

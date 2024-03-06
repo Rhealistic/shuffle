@@ -1,18 +1,17 @@
-from datetime import timedelta
 from django.db import transaction
 from django.db.models import Q
-from django.utils import timezone
 
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny
 from rest_framework.response import Response
 from rest_framework import status as drf_status
 
+from shuffle.artist.models import Opportunity
 from shuffle.artist.serializers import OpportunitySerializer
-from shuffle.artist.utils.discovery import discover_opportunities
+from shuffle.artist.utils.discovery import close_event, discover_opportunities
+from shuffle.calendar.models import Event
 from shuffle.calendar.utils import hours_ago
 
-from ..artist.models import Opportunity
 from . import utils
 from .models import Concept, Shuffle, Organization
 from .serializers import \
@@ -218,6 +217,25 @@ def accept_shuffle_invite(_, opportunity_id=None):
                     status=drf_status.HTTP_200_OK
                 )
         
+    except Exception as e:
+        logging.exception(e)
+
+        return Response(
+            data={'error': 'Error updating shuffle'}, 
+            status=drf_status.HTTP_500_INTERNAL_SERVER_ERROR
+        )
+
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def concept_event_complete(_, event_id, status):
+    try:
+        with transaction.atomic():
+            event = Event.objects.get(event_id=event_id)
+            return Response(
+                data={"success": close_event(event, status) == True}, 
+                status=drf_status.HTTP_200_OK
+            )
     except Exception as e:
         logging.exception(e)
 
