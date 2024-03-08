@@ -4,7 +4,7 @@ from django.db import models
 
 class Artist(models.Model):
     name  = models.CharField(max_length=16)
-    bio   = models.CharField(max_length=320)
+    bio   = models.TextField(max_length=500)
     email = models.EmailField(unique=True)
     phone = models.CharField(max_length=15)
     country = models.CharField(max_length=3, default="KEN")
@@ -91,8 +91,8 @@ class Opportunity(models.Model):
         RESCHEDULE = 2, 'Reschedule'
         PASS = 3, 'Pass'
 
-    opportunity_id = models.UUIDField(default= uuid.uuid4, db_index=True, unique=True)
     shuffle_id = models.UUIDField(null=True, blank=True, db_index=True)
+    opportunity_id = models.UUIDField(default= uuid.uuid4, db_index=True, unique=True)
     
     subscriber = models.ForeignKey('Subscriber', models.SET_NULL, null=True, 
         related_name='opportunities', related_query_name='opportunity')
@@ -101,7 +101,7 @@ class Opportunity(models.Model):
     
     status = models.PositiveSmallIntegerField(choices=Status.choices, null=True, default=Status.PENDING)
 
-    notes_to_curator = models.CharField(max_length=250, null=True)
+    notes_to_curator = models.TextField(max_length=250, null=True)
     reject_reason = models.PositiveSmallIntegerField(choices=RejectReason.choices, null=True)
 
     sent_at = models.DateTimeField(blank=True, null=True)

@@ -21,7 +21,6 @@ api = [
 web = [
     path("", views.go_home, name='home'),
     path("subscribe/<str:organization_slug>/<str:concept_slug>/", views.do_subscribe, name='subscribe-to-concept'),
-    path("subscribe/<str:organization_slug>/<str:concept_slug>", views.do_subscribe, name='subscribe-to-concept'),
     
     path("invite/<str:opportunity_id>/accept/", views.do_approve, {'action': Opportunity.Status.ACCEPTED}, name='invitation-accept'),
     path("invite/<str:opportunity_id>/skip/", views.do_approve, {'action': Opportunity.Status.SKIP}, name='invitation-re'),

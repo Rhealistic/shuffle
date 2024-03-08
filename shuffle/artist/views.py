@@ -35,6 +35,7 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
     successful = False
     form = SubscriptionForm()
     status = drf_status.HTTP_200_OK
+    concept = None
 
     try:
         concept = Concept.objects\
@@ -57,23 +58,20 @@ def do_subscribe(request: Request, organization_slug:str=None, concept_slug:str=
                 status = drf_status.HTTP_201_CREATED
                 successful = True
 
+        return render(request, "add_subscriber.html", {
+            "artist": artist,
+            "form": form,
+            "organization": concept.curator.organization,
+            "concept": concept,
+            "successful": successful,
+        }, status=status)
+
     except ObjectDoesNotExist as e:
         status = drf_status.HTTP_404_NOT_FOUND
-
-        messages.error(request, "ERR_404: Concept not found")
+        return HttpResponseNotFound()
     except Exception as e:
         logger.exception(e)
-
-        status = drf_status.HTTP_500_INTERNAL_SERVER_ERROR
-
-    return render(request, "add_subscriber.html", {
-        "artist": artist,
-        "form": form,
-        "organization_slug": organization_slug,
-        "concept_slug": concept_slug,
-        "successful": successful,
-    }, status=status)
-
+        return HttpResponseServerError()
 
 @api_view(['GET'])
 @permission_classes([AllowAny])

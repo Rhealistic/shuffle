@@ -6,6 +6,7 @@ from django.db import models
 class Organization(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(max_length=100, null=True)
+    bio = models.TextField(max_length=1000, null=True)
 
     organization_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
 
@@ -54,7 +55,9 @@ class Concept(models.Model):
     class RecurrenceType(models.IntegerChoices):
         DAILY = 0, "Daily"
         WEEKLY = 1, "Weekly"
-        MONTHLY = 2, "Monthly"
+        BIWEEKLY = 2, "Bieekly"
+        MONTHLY = 3, "Monthly"
+        QUARTERLY = 4, "Quarterly"
 
     class DayOfWeek(models.IntegerChoices):
         MONDAY = 0, "Monday"
@@ -69,13 +72,13 @@ class Concept(models.Model):
     curator = models.ForeignKey('Curator', models.SET_NULL, null=True)
 
     title = models.CharField(max_length=150)
-    slug = models.SlugField(max_length=75, null=True)
-    description = models.CharField(max_length=500)
+    slug = models.SlugField(max_length=75, unique=True)
+    description = models.TextField(max_length=500)
 
     is_recurring = models.BooleanField(default=False)
     recurrence_type = models.PositiveSmallIntegerField(choices=RecurrenceType.choices, null=True)
-    times_per_week = models.PositiveSmallIntegerField(blank=True, null=True)
-    times_per_month = models.PositiveSmallIntegerField(blank=True, null=True)
+    times_per_week = models.PositiveSmallIntegerField(blank=True, null=True, default=0)
+    times_per_month = models.PositiveSmallIntegerField(blank=True, null=True, default=0)
     day_of_week = models.PositiveSmallIntegerField(choices=DayOfWeek.choices, null=True, blank=True)
     end_type = models.PositiveSmallIntegerField(choices=EndType.choices, default=EndType.NEVER, null=True, blank=True)
 

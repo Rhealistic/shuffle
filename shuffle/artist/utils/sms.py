@@ -33,7 +33,6 @@ def send_skip_invite_sms(subscriber: Subscriber):
     logger.debug(f"AT's response={response}")
 
 
-
 def send_success_sms(subscriber: Subscriber):
     logger.debug(f"send_success_sms({subscriber})")
 

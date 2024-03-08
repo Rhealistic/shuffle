@@ -20,6 +20,7 @@ class CuratorAdmin(admin.ModelAdmin):
     list_display = [
         "curator_id",
         "name",
+        "organization",
         "email",
         "phone",
         "created_at"

@@ -105,12 +105,7 @@
         <div class="container pb-5">
             <div class="pt-5">
                 <h1 class="header white smaller">
-                    {% if action == 2 %}
-                        {{ opportunity.subscriber.concept.title }} - Accept Invitation
-                    {% endif %}
-                    {% if action == 3 %}
-                        {{ opportunity.subscriber.concept.title }} - Skip Invitation
-                    {% endif %}
+                    {{ opportunity.subscriber.concept.title }} - {% if action == 2 %}Accept{% elif action == 3 %}Skip{% endif %} Invitation
                 </h1>
                 
                 <form class="pt-4" action="." method="post">
@@ -120,12 +115,7 @@
                     
                     <div class="mt-5 col-5 col-xs-12 col-sm-12 col-md-6">
                         {% buttons %}
-                            {% if action == 2 %}
-                            <input type="submit" id="submit-button" type="submit" class="btn btn-success btn-block" value="Approve >"/>
-                            {% endif %}
-                            {% if action == 3 %}
-                            <input type="submit" id="submit-button" type="submit" class="btn btn-danger btn-block" value="Skip Invitation >"/>
-                            {% endif %}
+                            <input type="submit" id="submit-button" type="submit" class="btn btn-success btn-block" value="{% if action == 2 %}Approve >{% elif action == 3 %}Skip Invitation >{% endif %}"/>
                         {% endbuttons %}
                     </div>
                 </form>
