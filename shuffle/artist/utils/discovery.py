@@ -10,8 +10,9 @@ from ..models import Opportunity, Subscriber
 import logging
 logger = logging.getLogger(__name__)
 
-def discover_opportunities(concept: Concept):
-    logger.debug(f"discover_opportunities({concept})")
+
+def close_lapsed_events(concept: Concept):
+    logger.debug(f"close_lapsed_events({concept})")
 
     events = Event.objects\
         .filter(end__lte=timezone.now())\
@@ -21,7 +22,56 @@ def discover_opportunities(concept: Concept):
     for event in events:
         close_event(event, Event.Status.SUCCESSFUL)
 
-    subscribers = concept\
+
+def create_opportunity(subscriber: Subscriber):
+    # Check if subscriber has meets criteria
+    #1. Has no pending requests (in the middle of a shuffle)
+    current_pending_requests = models.Q(status__in=[
+        Opportunity.Status.PENDING,
+        Opportunity.Status.AWAITING_ACCEPTANCE,
+    ])
+    #2. Has not performed on this platform/concept in the past 4 weeks
+    recent_performance = models.Q(
+        status=Opportunity.Status.ACCEPTED, 
+        subscriber__status=Subscriber.Status.PERFORMED, 
+        event__status=Event.Status.SUCCESSFUL, 
+        subscriber__last_performance__gte=days_ago(28)
+    )
+    #3. Has not skipped an opportunity in the past 2 weeks
+    recent_skips = models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(14))
+    #4. Has not expired an opportunity in the past 4 weeks
+    recent_expirations = models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(28))
+    #5. Has not cancelled an event in the past 2 weeks
+    recent_cancellations = models.Q(
+        status=Opportunity.Status.ACCEPTED, 
+        event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED], 
+        closed_at__gte=days_ago(14))
+
+    un_engaged: models.QuerySet[Opportunity] = subscriber\
+        .opportunities\
+        .exclude(
+            current_pending_requests 
+            | recent_performance 
+            | recent_skips 
+            | recent_expirations 
+            | recent_cancellations
+        )
+    
+    if not un_engaged.exists():
+        logger.info(f"potential subscriber has not been engaged recently: {subscriber}")
+
+        logger.info(f"opportunity created for: {subscriber}")
+        return Opportunity\
+                .objects\
+                .create(subscriber=subscriber)
+        
+
+def discover_opportunities(concept: Concept):
+    logger.debug(f"discover_opportunities({concept})")
+
+    close_lapsed_events(concept)
+
+    subscribers: models.QuerySet[Subscriber] = concept\
         .concept_subscriptions\
         .filter(artist__is_active=True)\
         .filter(concept__curator__organization__is_active=True)\
@@ -32,46 +82,11 @@ def discover_opportunities(concept: Concept):
 
     for subscriber in subscribers:
         logger.info(f"checking subscriber engagement for: {subscriber}")
-
-        # Check if subscriber has meets criteria
-        #1. Has no pending requests (in the middle of a shuffle)
-        current_pending_requests = models.Q(status=Opportunity.Status.AWAITING_ACCEPTANCE)
-        #2. Has not performed on this platform/concept in the past 4 weeks
-        recent_performance = models.Q(
-            status=Opportunity.Status.ACCEPTED, 
-            subscriber__status=Subscriber.Status.PERFORMED, 
-            event__status=Event.Status.SUCCESSFUL, 
-            subscriber__last_performance__gte=days_ago(28)
-        )
-        #3. Has not skipped an opportunity in the past 2 weeks
-        recent_skips = models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(14))
-        #4. Has not expired an opportunity in the past 4 weeks
-        recent_expirations = models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(28))
-        #5. Has not cancelled an event in the past 2 weeks
-        recent_cancellations = models.Q(
-            status=Opportunity.Status.ACCEPTED, 
-            event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED], 
-            closed_at__gte=days_ago(14))
-
-        un_engaged = subscriber\
-            .opportunities\
-            .exclude(
-                current_pending_requests 
-                | recent_performance 
-                | recent_skips 
-                | recent_expirations 
-                | recent_cancellations
-            )
         
-        if not un_engaged.exists():
-            logger.info(f"potential subscriber has not been engaged recently: {subscriber}")
+        opportunity = create_opportunity(subscriber)
+        logger.debug(f"Opportunity for {subscriber.artist}")
 
-            new_opportunities.append(
-                Opportunity
-                    .objects
-                    .create(subscriber=subscriber))
-            
-            logger.info(f"opportunity created for: {subscriber}")
+        new_opportunities.append(opportunity)
             
     return new_opportunities
 
