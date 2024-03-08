@@ -43,24 +43,23 @@ def discover_opportunities(concept: Concept):
             subscriber__last_performance__gte=days_ago(28)
         )
         #3. Has not skipped an opportunity in the past 2 weeks
-        recent_skips = models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(2 * 7))
+        recent_skips = models.Q(status=Opportunity.Status.SKIP, closed_at__gte=days_ago(14))
         #4. Has not expired an opportunity in the past 4 weeks
-        recent_expirations = models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(4 * 7))
+        recent_expirations = models.Q(status=Opportunity.Status.EXPIRED, closed_at__gte=days_ago(28))
         #5. Has not cancelled an event in the past 2 weeks
         recent_cancellations = models.Q(
             status=Opportunity.Status.ACCEPTED, 
             event__status__in=[Event.Status.RESCHEDULED, Event.Status.CANCELLED], 
-            closed_at__gte=days_ago(14)
-        )
+            closed_at__gte=days_ago(14))
 
         un_engaged = subscriber\
             .opportunities\
             .exclude(
                 current_pending_requests 
                 | recent_performance 
-                | recent_cancellations 
                 | recent_skips 
-                | recent_expirations
+                | recent_expirations 
+                | recent_cancellations
             )
         
         if not un_engaged.exists():
