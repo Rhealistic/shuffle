@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.db import transaction
 from django.db.models.functions import Random
 from django.db.models.query import QuerySet
@@ -13,23 +14,21 @@ from ..models import Shuffle
 import logging
 logger = logging.getLogger(__name__)
 
-def do_shuffle(concept: Concept):
-    logger.debug(f"do_shuffle(`{concept}`)")
 
-    in_progress = Shuffle.objects\
-        .filter(concept=concept)\
-        .filter(closed_at__isnull=True)\
-        .exists()
-    
-    if in_progress:
-        logger.error(f"Shuffle: shuffle on concept '{concept}' is already in progress")
-        return
+def fetch_latest_pending_shuffles():
+    return Shuffle.objects\
+        .filter(status=Shuffle.Status.PENDING)\
+        .filter(start_time__lte=timezone.now())\
+        .filter(closed_at__isnull=True)
+
+
+def do_shuffle(shuffle: Shuffle):
+    logger.debug(f"do_shuffle(`{shuffle}`)")
+    concept = shuffle.concept
+
+    assert shuffle.status == Shuffle.Status.PENDING and shuffle.closed_at is None, "Shuffle has already been processed"
 
     with transaction.atomic():
-        shuffle = Shuffle.objects.create(
-            concept=concept, 
-            start_date=timezone.now())
-        
         logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}'")
         
         concept.shuffle_count += 1
@@ -57,6 +56,11 @@ def do_shuffle(concept: Concept):
         shuffle.status = Shuffle.Status.FAILED
         shuffle.closed_at = timezone.now()
         shuffle.save()
+
+        next_shuffle = Shuffle.objects.create(
+            concept=concept, 
+            start_time=shuffle.start_time + timedelta(days=7))
+        logger.debug(f"Next shuffle scheduled for {next_shuffle.start_time}")
 
 
 def do_reshuffle(previous: Opportunity, opportunity_status):

@@ -113,15 +113,15 @@ class Shuffle(models.Model):
         COMPLETE = 4, "Complete"
         FAILED = 5, "Failed"
     
-    shuffle_id = models.UUIDField(max_length=30, default = uuid.uuid4, db_index=True, unique=True)
-    concept    = models.ForeignKey('Concept', models.SET_NULL, null=True)
+    shuffle_id = models.UUIDField(max_length=30, default=uuid.uuid4, db_index=True, unique=True)
+    concept = models.ForeignKey('Concept', models.SET_NULL, null=True)
 
-    pick    = models.ForeignKey("artist.Subscriber", models.SET_NULL, null=True)
-    status  = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
-
+    status = models.PositiveSmallIntegerField(choices=Status.choices, default=Status.PENDING)
+    pick = models.ForeignKey("artist.Subscriber", models.SET_NULL, null=True, blank=True)
     retries = models.PositiveSmallIntegerField(default=0)
-    start_date  = models.DateTimeField(null=True)
-    closed_at   = models.DateTimeField(null=True, blank=True)
+    
+    start_time = models.DateTimeField(null=True)
+    closed_at = models.DateTimeField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True, blank=True)

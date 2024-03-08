@@ -6,10 +6,18 @@ from shuffle.artist.utils.sms import \
     send_success_sms
 
 from shuffle.artist.models import Artist, Opportunity, Subscriber
+from shuffle.calendar.utils import hours_ago
 from ..models import Concept, Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
+
+
+def fetch_expired_shuffle_invites():
+    return Opportunity.objects\
+        .filter(status=Opportunity.Status.PENDING)\
+        .filter(closed_at__isnull=True)\
+        .filter(sent_at__lte=hours_ago(24))\
 
 
 def prepare_invite(shuffle: Shuffle, pick: Subscriber) -> Opportunity:

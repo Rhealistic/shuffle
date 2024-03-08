@@ -45,7 +45,7 @@ class ShuffleAdmin(admin.ModelAdmin):
         "pick",
         "retries",
         "status",
-        "start_date",
+        "start_time",
         "closed_at",
         "created_at"
     ]
