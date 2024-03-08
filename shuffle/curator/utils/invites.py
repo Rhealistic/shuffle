@@ -1,3 +1,4 @@
+from datetime import timedelta
 from django.utils import timezone
 from shuffle.artist.utils.discovery import close_opportunity
 from shuffle.artist.utils.sms import \
@@ -62,6 +63,11 @@ def accept_invite(shuffle: Shuffle, opportunity: Opportunity, notes=None) -> boo
         shuffle.status = Shuffle.Status.COMPLETE
         shuffle.closed_at = timezone.now()
         shuffle.save(update_fields=['status', 'closed_at'])
+
+        next_shuffle = Shuffle.objects.create(
+            concept=shuffle.concept, 
+            start_time=shuffle.start_time + timedelta(days=7))
+        logger.debug(f"Next shuffle scheduled for {next_shuffle.start_time}")
 
         if notes:
             opportunity.notes_to_curator = notes

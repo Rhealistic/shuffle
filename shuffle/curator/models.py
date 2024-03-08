@@ -104,7 +104,6 @@ class Concept(models.Model):
 
 
 class Shuffle(models.Model):
-
     class Status(models.IntegerChoices):
         PENDING = 0, "Pending"
         IN_PROGRESS = 1, "In Progress"

@@ -6,6 +6,8 @@ import traceback
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 from shuffle.artist.models import Opportunity
+from shuffle.artist.utils.discovery import discover_opportunities
+from shuffle.curator.models import Concept
 from shuffle.curator.utils.invites import fetch_expired_shuffle_invites
 
 from shuffle.curator.utils.shuffle import do_reshuffle, do_shuffle, fetch_latest_pending_shuffles
@@ -17,7 +19,7 @@ class Command(BaseCommand):
         parser.add_argument(
             '--job',
             type=str,
-            choices=['shuffle', 'expired-invites'],
+            choices=['shuffle', 'expired-invites', 'discovery'],
             help='Specify the job to run'
         )
 
@@ -31,8 +33,7 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Processing shuffle `{shuffle.shuffle_id}` ---'))
 
             start_time = time.time()
-            next_shuffle = do_shuffle(shuffle)
-            self.stdout.write(self.style.NOTICE(f"Next Shuffle: {next_shuffle}"))
+            do_shuffle(shuffle)
 
             end_time = time.time()
             self.stdout.write(self.style.NOTICE(f"Script execution time: {(end_time - start_time) / 60} minutes"))
@@ -47,11 +48,20 @@ class Command(BaseCommand):
             self.stdout.write(self.style.NOTICE(f'{timezone.now()}:  Processing shuffle `{opportunity.opportunity_id}` ---'))
 
             start_time = time.time()
-            next_shuffle = do_reshuffle(opportunity, Opportunity.Status.EXPIRED)
-            self.stdout.write(self.style.NOTICE(f"Next Shuffle: {next_shuffle}"))
+            do_reshuffle(opportunity, Opportunity.Status.EXPIRED)
 
             end_time = time.time()
             self.stdout.write(self.style.NOTICE(f"Script execution time: {(end_time - start_time) / 60} minutes"))
+
+    def run_discovery(self):
+        self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Processing opportunity discovery ---'))
+
+        start_time = time.time()
+        for concept in Concept.objects.filter(is_active=True):
+            discover_opportunities(concept)
+
+        end_time = time.time()
+        self.stdout.write(self.style.NOTICE(f"Script execution time: {(end_time - start_time) / 60} minutes"))
 
     def handle(self, *args, **options):
         job = options.get('job')
@@ -65,6 +75,9 @@ class Command(BaseCommand):
                 self.stdout.write(self.style.SUCCESS(f'{timezone.now()}: Script executed successfully ---'))
             elif job == 'expired-invites':
                 self.handle_expired_invites()
+                self.stdout.write(self.style.SUCCESS(f'{timezone.now()}: Script executed successfully ---'))
+            elif job == 'discovery':
+                self.run_discovery()
                 self.stdout.write(self.style.SUCCESS(f'{timezone.now()}: Script executed successfully ---'))
             else:
                 self.stdout.write(self.style.WARNING(f'{timezone.now()}: No valid job specified'))

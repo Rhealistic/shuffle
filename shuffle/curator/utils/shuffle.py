@@ -57,11 +57,6 @@ def do_shuffle(shuffle: Shuffle):
         shuffle.closed_at = timezone.now()
         shuffle.save()
 
-        next_shuffle = Shuffle.objects.create(
-            concept=concept, 
-            start_time=shuffle.start_time + timedelta(days=7))
-        logger.debug(f"Next shuffle scheduled for {next_shuffle.start_time}")
-
 
 def do_reshuffle(previous: Opportunity, opportunity_status):
     logger.debug(f"do_reshuffle({previous}, {opportunity_status})")
@@ -103,8 +98,6 @@ def do_reshuffle(previous: Opportunity, opportunity_status):
             shuffle.status = Shuffle.Status.FAILED
             shuffle.closed_at = timezone.now()
             shuffle.save()
-
-
 
 def pick_performer(concept: Concept) -> Subscriber:
     logger.debug(f"pick_performer({concept})")

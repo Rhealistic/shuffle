@@ -15,6 +15,7 @@ def discover_opportunities(concept: Concept):
 
     events = Event.objects\
         .filter(end__lte=timezone.now())\
+        .filter(concept_opportunity__subscriber__concept=concept)\
         .filter(closed_at__isnull=True)
     
     for event in events:
