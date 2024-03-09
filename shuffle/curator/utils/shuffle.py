@@ -106,7 +106,7 @@ def pick_performer(concept: Concept) -> Subscriber:
         .filter(concept=concept)\
         .filter(opportunity__status=Opportunity.Status.PENDING)\
         .filter(opportunity__closed_at__isnull=True)
-    
+
     def get_random_subscriber(subscribers) -> Subscriber:
         return subscribers.order_by(Random()).first()
 
@@ -123,8 +123,9 @@ def pick_performer(concept: Concept) -> Subscriber:
                 if subscribers.filter(performance_count__lte=1).count() > 0:
                     logger.debug(f"{subscribers.count()} '{status} - ATLEAST ONCE' status subscribers found")
                     return get_random_subscriber(subscribers.filter(performance_count__lte=1))
-                else:
+                elif subscribers.count():
                     return get_random_subscriber(subscribers)
             else:
-                logger.debug(f"{subscribers.count()} '{status}' status subscribers found")
-                return get_random_subscriber(subscribers)
+                if subscribers.count():
+                    logger.debug(f"{subscribers.count()} '{status}' status subscribers found")
+                    return get_random_subscriber(subscribers)

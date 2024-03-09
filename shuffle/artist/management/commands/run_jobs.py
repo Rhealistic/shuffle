@@ -63,7 +63,7 @@ class Command(BaseCommand):
         end_time = time.time()
         self.stdout.write(self.style.NOTICE(f"Script execution time: {(end_time - start_time) / 60} minutes"))
 
-    def handle(self, *args, **options):
+    def handle(self, *_, **options):
         job = options.get('job')
         
         # Your script logic here
@@ -87,9 +87,9 @@ class Command(BaseCommand):
             self.stdout.write(self.style.ERROR(f'{timezone.now()}: Exiting abruptly'))
             cleanup_and_exit(signal.SIGINT, None)
 
-        except Exception as e:
+        except Exception:
             exc_type, exc_value, _ = sys.exc_info()
-            print(traceback.format_exc())
+            self.stdout.write(traceback.format_exc())
 
             self.stdout.write(self.style.ERROR(f'{timezone.now()}: Exception Type: {exc_type} ---'))
             self.stdout.write(self.style.ERROR(f'{timezone.now()}: Exception Value: {exc_value} ---'))
