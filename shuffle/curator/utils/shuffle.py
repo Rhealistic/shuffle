@@ -122,9 +122,9 @@ def pick_performer(concept: Concept) -> Subscriber:
             if status == Subscriber.Status.PERFORMED:
                 if subscribers.filter(performance_count__lte=1).count() > 0:
                     logger.debug(f"{subscribers.count()} '{status} - ATLEAST ONCE' status subscribers found")
-                    get_random_subscriber(subscribers.filter(performance_count__lte=1))
+                    return get_random_subscriber(subscribers.filter(performance_count__lte=1))
                 else:
-                    get_random_subscriber(subscribers)
+                    return get_random_subscriber(subscribers)
             else:
                 logger.debug(f"{subscribers.count()} '{status}' status subscribers found")
-                get_random_subscriber(subscribers)
+                return get_random_subscriber(subscribers)
