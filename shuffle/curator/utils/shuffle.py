@@ -23,14 +23,12 @@ def fetch_latest_pending_shuffles():
 
 
 def do_shuffle(shuffle: Shuffle):
-    logger.debug(f"do_shuffle(`{shuffle}`)")
-    concept = shuffle.concept
+    logger.debug(f"do_shuffle(`{shuffle.shuffle_id}{shuffle.concept}`)")
 
+    concept = shuffle.concept
     assert shuffle.status == Shuffle.Status.PENDING and shuffle.closed_at is None, "Shuffle has already been processed"
 
     with transaction.atomic():
-        logger.debug(f"Shuffle: created a new shuffle '{shuffle.shuffle_id}'")
-        
         concept.shuffle_count += 1
         concept.save()
         
