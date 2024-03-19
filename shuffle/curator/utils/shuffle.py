@@ -97,10 +97,11 @@ def do_reshuffle(previous: Opportunity, opportunity_status):
             shuffle.closed_at = timezone.now()
             shuffle.save()
 
+
 def pick_performer(concept: Concept) -> Subscriber:
     logger.debug(f"pick_performer({concept})")
 
-    potential_picks: QuerySet = Subscriber.objects\
+    potential_picks: QuerySet[Subscriber] = Subscriber.objects\
         .filter(artist__is_active=True)\
         .filter(is_subscribed=True)\
         .filter(concept=concept)\
@@ -117,11 +118,11 @@ def pick_performer(concept: Concept) -> Subscriber:
             Subscriber.Status.NEXT_CYCLE,
             Subscriber.Status.PERFORMED
         ]:
-            subscribers = potential_picks.filter(status=status)
+            subscribers: QuerySet[Subscriber] = potential_picks.filter(status=status)
 
             if status == Subscriber.Status.PERFORMED:
                 if subscribers.filter(performance_count__lte=1).count() > 0:
-                    logger.debug(f"{subscribers.count()} '{status} - ATLEAST ONCE' status subscribers found")
+                    logger.debug(f"{subscribers.filter(performance_count__lte=1).count()} '{status} - ATLEAST ONCE' status subscribers found")
                     return get_random_subscriber(subscribers.filter(performance_count__lte=1))
                 elif subscribers.count():
                     return get_random_subscriber(subscribers)
