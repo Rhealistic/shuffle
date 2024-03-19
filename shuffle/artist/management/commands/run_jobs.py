@@ -10,7 +10,7 @@ from shuffle.artist.utils.discovery import discover_opportunities
 from shuffle.curator.models import Concept
 from shuffle.curator.utils.invites import fetch_expired_shuffle_invites
 
-from shuffle.curator.utils.shuffle import do_reshuffle, do_shuffle, fetch_latest_pending_shuffles
+from shuffle.curator.utils.shuffle import do_reshuffle, do_shuffle, prepare_shuffles
 
 class Command(BaseCommand):
     help = 'Run JOBS!'
@@ -26,8 +26,8 @@ class Command(BaseCommand):
     def run_shuffle(self):
         self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Processing shuffles ---'))
 
-        shuffles = fetch_latest_pending_shuffles()
-        self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Found {shuffles.count()} pending shuffles found ---'))
+        shuffles = prepare_shuffles()
+        self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Found {len(shuffles)} pending shuffles found ---'))
 
         for shuffle in shuffles:
             self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Processing shuffle `{shuffle.shuffle_id}` ---'))

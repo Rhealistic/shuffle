@@ -9,17 +9,30 @@ from shuffle.curator.models import Concept
 
 from shuffle.artist.models import Opportunity, Subscriber
 from .invites import prepare_invite
-from ..models import Shuffle
+from ..models import Organization, Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
 
 
-def fetch_latest_pending_shuffles():
-    return Shuffle.objects\
-        .filter(status=Shuffle.Status.PENDING)\
-        .filter(start_time__lte=timezone.now())\
-        .filter(closed_at__isnull=True)
+def prepare_shuffles():
+    shuffles = []
+
+    active_concepts = Concept.objects\
+        .filter(curator__organization__is_active=True)\
+        .filter(curator__is_active=True)\
+        .filter(is_active=True)
+    for concept in active_concepts:
+        shuffles.append(
+            Shuffle.objects
+                .create(
+                    concept=concept,
+                    status=Shuffle.Status.PENDING,
+                    start_time=timezone.now()
+                )
+        )
+    
+    return shuffles
 
 
 def do_shuffle(shuffle: Shuffle):
