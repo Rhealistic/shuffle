@@ -104,12 +104,11 @@
 
         <div class="container pb-5">
             <div class="pt-5">
-                <h1 class="header white smaller">
+                <h1 class="header white smaller mb-3">
                     {{ opportunity.subscriber.concept.title }} - {% if action == 2 %}Accept{% elif action == 3 %}Skip{% endif %} Invitation
                 </h1>
                 
-                <a href="{% url 'invitation-accept' opportunity.opportunity_id %}">Accept</a>
-                <a href="{% url 'invitation-skip' opportunity.opportunity_id %}">Skip</a>
+                <a class="btn btn-success" href="{% url 'invitation-accept' opportunity.opportunity_id %}">Accept</a> | <a class="btn btn-dabnger" href="{% url 'invitation-skip' opportunity.opportunity_id %}">Skip</a>
             </div>
         </div>
         <div class="container-fluid white-bg">
