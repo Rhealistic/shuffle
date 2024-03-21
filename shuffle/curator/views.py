@@ -11,6 +11,7 @@ from shuffle.artist.serializers import OpportunitySerializer
 from shuffle.artist.utils.discovery import close_event, discover_opportunities
 from shuffle.calendar.models import Event
 from shuffle.calendar.utils import hours_ago
+from shuffle.curator.utils.shuffle import prepare_shuffles
 
 from . import utils
 from .models import Concept, Shuffle, Organization
@@ -99,24 +100,23 @@ def get_organizations(_, organization_slug=None, organization_id=None):
         status=drf_status.HTTP_200_OK
     )
 
-
 @api_view(['POST'])
 @permission_classes([AllowAny])
-def do_shuffle(_, concept_id):
+def do_shuffle(_):
     try:
-        concept = Concept.objects\
-            .filter(curator__organization__is_active=True)\
-            .filter(curator__is_active=True)\
-            .filter(is_active=True)\
-            .filter(concept_id=concept_id)\
-            .get()
-        opportunity = utils.do_shuffle(concept)
+        shuffles = prepare_shuffles()
 
-        if opportunity:
-            return Response(
-                data=OpportunitySerializer(instance=opportunity).data, 
-                status=drf_status.HTTP_200_OK
-            )
+        opportunities = []
+        for shuffle in shuffles:
+            opportunities.append(utils.do_shuffle(shuffle))
+
+        if opportunities:
+            serializer = OpportunitySerializer(data=opportunities, many=True)
+            if serializer.is_valid():
+                return Response(
+                    data=serializer.data, 
+                    status=drf_status.HTTP_200_OK
+                )
         else:
             return Response(
                 data={'error': 'Shuffle could not run at this time. Possible backlog.'}, 

@@ -1,4 +1,5 @@
 from datetime import timedelta
+from time import sleep
 from django.db import transaction
 from django.db.models.functions import Random
 from django.db.models.query import QuerySet
@@ -9,7 +10,7 @@ from shuffle.curator.models import Concept
 
 from shuffle.artist.models import Opportunity, Subscriber
 from .invites import prepare_invite
-from ..models import Organization, Shuffle
+from ..models import Shuffle
 
 import logging
 logger = logging.getLogger(__name__)
@@ -63,6 +64,7 @@ def do_shuffle(shuffle: Shuffle):
             
             logger.debug(f"Shuffle: Retry - {r}: The pick was empty, retrying")
             r += 1
+            sleep(5)
 
         shuffle.status = Shuffle.Status.FAILED
         shuffle.closed_at = timezone.now()

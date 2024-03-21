@@ -27,7 +27,7 @@ class Command(BaseCommand):
         self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Processing shuffles ---'))
 
         shuffles = prepare_shuffles()
-        self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Found {len(shuffles)} pending shuffles found ---'))
+        self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Found {len(shuffles)} shuffles found ---'))
 
         for shuffle in shuffles:
             self.stdout.write(self.style.NOTICE(f'{timezone.now()}: Processing shuffle `{shuffle.shuffle_id}` ---'))
