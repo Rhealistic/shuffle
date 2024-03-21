@@ -23,7 +23,8 @@ web = [
     path("subscribe/<str:organization_slug>/<str:concept_slug>/", views.do_subscribe, name='subscribe-to-concept'),
     
     path("invite/<str:opportunity_id>/accept/", views.do_approve, {'action': Opportunity.Status.ACCEPTED}, name='invitation-accept'),
-    path("invite/<str:opportunity_id>/skip/", views.do_approve, {'action': Opportunity.Status.SKIP}, name='invitation-re'),
+    path("invite/<str:opportunity_id>/skip/", views.do_approve, {'action': Opportunity.Status.SKIP}, name='invitation-skip'),
+    path("invite/<str:opportunity_id>/approval/", views.invitation_approval, name='invitation-approval'),
 ]
 
 urlpatterns = (api + web)

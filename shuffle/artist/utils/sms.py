@@ -61,20 +61,22 @@ def send_success_sms(subscriber: Subscriber):
 def send_invite_sms(artist: Artist, opportunity: Opportunity, event_date: datetime.datetime):
     logger.debug(f"send_invite_sms({artist.phone})")
 
-    accept_url = shorten_url(f'{settings.BASE_URL}/invite/{opportunity.opportunity_id}/accept/')
-    skip_url = shorten_url(f'{settings.BASE_URL}/invite/{opportunity.opportunity_id}/skip/')
+    approval_url = shorten_url(f'{settings.BASE_URL}/invite/{opportunity.opportunity_id}/approval/')
 
     config = Config.objects\
         .filter(type=Config.ConfigType.SMS_TEMPLATE)\
         .filter(key="SHUFFLE_INVITE_SMS")\
         .get()
+    
+    subscriber: Subscriber = opportunity.subscriber
+    concept: Concept = subscriber.concept
 
     message = config.value.format(
         artist_name=artist.name,
         event_date=event_date.strftime("%d/%m/%Y"),
         event_time=event_date.strftime('%I:%M %p'),
-        accept_url=accept_url,
-        skip_url=skip_url
+        approval_url=approval_url,
+        concept_name=concept.title
     )
     return send_sms(artist.phone, message)
 

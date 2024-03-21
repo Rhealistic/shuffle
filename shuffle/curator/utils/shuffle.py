@@ -128,10 +128,10 @@ def pick_performer(concept: Concept) -> Subscriber:
 
     with transaction.atomic():
         for status in [
-            Subscriber.Status.POTENTIAL, 
-            Subscriber.Status.NEXT_UP, 
-            Subscriber.Status.NEXT_CYCLE,
-            Subscriber.Status.PERFORMED
+            Subscriber.Status.POTENTIAL, # are new artists that have just subscribed
+            Subscriber.Status.NEXT_UP, # the artist selected for the next performance
+            Subscriber.Status.NEXT_CYCLE, # artist
+            Subscriber.Status.PERFORMED # 
         ]:
             subscribers: QuerySet[Subscriber] = potential_picks.filter(status=status)
 
@@ -145,3 +145,6 @@ def pick_performer(concept: Concept) -> Subscriber:
                 if subscribers.count():
                     logger.debug(f"{subscribers.count()} '{status}' status subscribers found")
                     return get_random_subscriber(subscribers)
+              
+
+         

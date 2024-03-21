@@ -272,10 +272,36 @@ def sms_optin(request):
         status=drf_status.HTTP_200_OK
     )
 
+@api_view(["GET"])
+@permission_classes([AllowAny])
+def invitation_approval(request: Request, opportunity_id:str=None):
+    try:
+        opportunity: Opportunity = Opportunity.objects\
+            .filter(subscriber__concept__curator__organization__is_active=True)\
+            .filter(subscriber__concept__curator__is_active=True)\
+            .filter(subscriber__concept__is_active=True)\
+            .filter(subscriber__is_subscribed=True)\
+            .filter(opportunity_id=opportunity_id)\
+            .filter(sent_at__gte=hours_ago(24))\
+            .filter(closed_at__isnull=True)\
+            .get()
+
+        return render(request, "invitation.html", {
+            'opportunity': opportunity
+        })
+    except ObjectDoesNotExist as e:
+        logger.exception(e)
+
+        return HttpResponseNotFound()
+    except Exception as e:
+        logger.exception(e)
+
+        return HttpResponseServerError()
+
+
 @api_view(["GET", "POST"])
 @permission_classes([AllowAny])
 def do_approve(request: Request, opportunity_id:str=None, action:Opportunity.Status=None):
-    
     try:
         opportunity: Opportunity = Opportunity.objects\
             .filter(subscriber__concept__curator__organization__is_active=True)\
