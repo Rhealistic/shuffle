@@ -108,7 +108,7 @@
                     {{ opportunity.subscriber.concept.title }} - {% if action == 2 %}Accept{% elif action == 3 %}Skip{% endif %} Invitation
                 </h1>
                 
-                <a class="btn btn-success" href="{% url 'invitation-accept' opportunity.opportunity_id %}">Accept</a> | <a class="btn btn-danger" href="{% url 'invitation-skip' opportunity.opportunity_id %}">Skip</a>
+                <a class="btn btn-success btn-lg" href="{% url 'invitation-accept' opportunity.opportunity_id %}">Accept</a> | <a class="btn btn-danger btn-lg" href="{% url 'invitation-skip' opportunity.opportunity_id %}">Skip</a>
             </div>
         </div>
         <div class="container-fluid white-bg">
