@@ -115,7 +115,7 @@
                     
                     <div class="mt-5 col-5 col-xs-12 col-sm-12 col-md-6">
                         {% buttons %}
-                            <input type="submit" id="submit-button" type="submit" class="btn btn-success btn-block" value="{% if action == 2 %}Approve >{% elif action == 3 %}Skip Invitation >{% endif %}"/>
+                            <input type="submit" id="submit-button" type="submit" class="btn {% if action == 2 %}btn-success{% else %}btn-danger{% endif %} btn-block" value="{% if action == 2 %}Approve >{% elif action == 3 %}Skip Invitation >{% endif %}"/>
                         {% endbuttons %}
                     </div>
                 </form>
