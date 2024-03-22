@@ -12,14 +12,14 @@ Serves as a calendar management tool streamlining and automating repetitive cura
 ## HOW SHUFFLE WORKS
 Upon subscription, each artist will go through the following statuses through the cycle.
 
-`POTENTIAL` - Artists who join the concept through a form into the database.
-`NEXT UP` - Artist selected by Shuffle for the next performance.
-`PERFORMED` - One who has used the opportunity successfully.
-`NEXT CYCLE` - One who has utilized or skipped an opportunity.
+- `POTENTIAL` - Artists who join the concept through a form into the database.
+- `NEXT UP` - Artist selected by Shuffle for the next performance.
+- `PERFORMED` - One who has used the opportunity successfully.
+- `NEXT CYCLE` - One who has utilized or skipped an opportunity.
 
 Then, two services will run:
-A *Discovery* algorithm
-The *Shuffle* algorithm.
+1. A *Discovery* algorithm
+2. The *Shuffle* algorithm.
 
 The discovery algorithm runs first, weekly (currently set to Mondays) which discovers opportunities (Looks for subscribers and subscriptions to each concept)
 
