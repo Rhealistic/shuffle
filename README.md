@@ -26,18 +26,18 @@ The discovery algorithm runs first, weekly (currently set to Mondays) which disc
 Then each subscriber will acquire a tag based on the artists actions once an invite is sent to them via SMS)
 
 The Opportunity Status
-`ACCEPTED` - One who takes the opportunity in time.
-`SKIP` - One who rejects the opportunity
-`EXPIRED` - One who did not answer the opportunity and hasn’t replied in time
-`AWAITING_ACCEPTANCE` - One whose response is being awaited after an opportunity has been sent
-`PENDING` - One who hasn’t been picked before for an opportunity.
+- `ACCEPTED` - One who takes the opportunity in time.
+- `SKIP` - One who rejects the opportunity
+- `EXPIRED` - One who did not answer the opportunity and hasn’t replied in time
+- `AWAITING_ACCEPTANCE` - One whose response is being awaited after an opportunity has been sent
+- `PENDING` - One who hasn’t been picked before for an opportunity.
 
 The shuffle criteria:
-- One has *no pending* requests. Has replied (accepted) an opportunity before.
-- They have performed in this concept in the past (x) weeks.
-- The algorithm will not give the opportunity to one who has already performed recently. The curator chooses how long that would be.
-- Has not skipped an opportunity in (x) weeks.
-- Not expired in the (x) weeks.
-- Skipped in the past (x) weeks.
+1. One has *no pending* requests. Has replied (accepted) an opportunity before.
+2. They have performed in this concept in the past (x) weeks.
+3. The algorithm will not give the opportunity to one who has already performed recently. The curator chooses how long that would be.
+4. Has not skipped an opportunity in (x) weeks.
+5. Not expired in the (x) weeks.
+6. Skipped in the past (x) weeks.
 
 Then Shuffle runs after for those who meet the criteria and are shuffled, and an artist is selected.
